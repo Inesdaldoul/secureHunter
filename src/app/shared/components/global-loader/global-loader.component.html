@@ -1,0 +1,20 @@
+<div *ngIf="loadingService.isLoading$ | async" 
+     class="loader-overlay"
+     role="alert"
+     aria-live="assertive"
+     [attr.aria-busy]="true">
+     
+  <div class="loader-content" role="status">
+    <mat-progress-spinner 
+      diameter="64"
+      strokeWidth="6"
+      mode="indeterminate"
+      color="accent"
+      aria-label="Loading indicator">
+    </mat-progress-spinner>
+    
+    <span class="visually-hidden" i18n="@@loadingText">
+      SecureHunter is loading content, please wait
+    </span>
+  </div>
+</div>

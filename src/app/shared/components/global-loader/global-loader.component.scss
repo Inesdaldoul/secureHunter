@@ -1,0 +1,50 @@
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--background-overlay);
+  backdrop-filter: blur(8px);
+  pointer-events: all;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  // Animation de pulsation
+  mat-progress-spinner {
+    animation: pulse 1.5s ease-in-out infinite;
+    opacity: 0.9;
+    
+    circle {
+      stroke-linecap: round;
+    }
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.95); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(0.95); }
+  }
+}
+
+// Thème clair
+:host-context(.light-theme) {
+  --background-overlay: rgba(255, 255, 255, 0.9);
+  --primary-accent: #{mat-color($primary-palette, 500)};
+}
+
+// Thème sombre
+:host-context(.dark-theme) {
+  --background-overlay: rgba(0, 0, 0, 0.85);
+  --primary-accent: #{mat-color($accent-palette, A200)};
+}
+
+// Accessibilité
+@media (prefers-reduced-motion: reduce) {
+  .loader-overlay mat-progress-spinner {
+    animation: none;
+  }
+}

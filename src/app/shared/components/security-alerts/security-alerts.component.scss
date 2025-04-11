@@ -1,0 +1,30 @@
+.alerts-container {
+  max-width: 800px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  
+  .alert-item {
+    transition: background-color 0.3s ease;
+    
+    &:hover {
+      background-color: rgba(255, 82, 82, 0.1);
+    }
+    
+    .alert-title {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .alert-description {
+      color: var(--text-secondary);
+      font-size: 0.9em;
+    }
+    
+    [mat-icon-button] {
+      opacity: 0.7;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}

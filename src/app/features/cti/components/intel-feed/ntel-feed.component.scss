@@ -1,0 +1,411 @@
+// intel-feed.component.scss
+@import 'src/styles/themes/variables';
+
+.intel-feed-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  height: 70vh;
+  position: relative;
+
+  .threat-list {
+    overflow-y: auto;
+    padding-right: 1rem;
+    
+    .threat-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.3s $ease-out-quad;
+      border: 1px solid transparent;
+      
+      &:hover {
+        transform: translateX(5px);
+        box-shadow: var(--elevation-2);
+        border-color: var(--primary-color-10);
+      }
+      
+      &.selected {
+        border-left: 4px solid var(--primary-color);
+        background: var(--selected-bg);
+      }
+
+      .threat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        
+        .threat-level {
+          padding: 0.3rem 1rem;
+          border-radius: 20px;
+          font-size: 0.75em;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          
+          @each $level, $color in $threat-colors {
+            &.#{$level} {
+              background: rgba($color, 0.15);
+              color: $color;
+            }
+          }
+        }
+        
+        .threat-date {
+          font-size: 0.85em;
+          color: var(--text-muted);
+        }
+      }
+
+      .threat-title {
+        margin: 0;
+        font-size: 1.1em;
+        font-weight: 500;
+        color: var(--text-primary);
+        @include text-ellipsis(2);
+      }
+
+      .threat-indicators {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        
+        .indicator {
+          background: var(--tag-bg);
+          padding: 0.3rem 0.8rem;
+          border-radius: 15px;
+          font-size: 0.75em;
+          font-family: var(--font-mono);
+          color: var(--text-muted);
+          border: 1px solid var(--border-color);
+        }
+      }
+    }
+  }
+
+  .threat-details {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+
+    .detail-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+
+      h2 {
+        margin: 0 0 0.5rem;
+        color: var(--text-primary);
+        font-size: 1.5em;
+      }
+
+      .threat-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .criticality-badge {
+          padding: 0.3rem 1rem;
+          border-radius: 20px;
+          font-size: 0.85em;
+          font-weight: 600;
+          
+          @each $level, $color in $threat-colors {
+            &.#{$level} {
+              background: rgba($color, 0.15);
+              color: $color;
+            }
+          }
+        }
+
+        .timestamp {
+          font-size: 0.9em;
+          color: var(--text-muted);
+        }
+      }
+    }
+
+    .mat-tab-group {
+      flex-grow: 1;
+      
+      ::ng-deep {
+        .mat-tab-header {
+          margin-bottom: 2rem;
+        }
+
+        .mat-tab-label {
+          font-weight: 500;
+          opacity: 1;
+          color: var(--text-muted);
+          
+          &-active {
+            color: var(--primary-color);
+          }
+        }
+
+        .mat-ink-bar {
+          background-color: var(--primary-color);
+          height: 3px;
+        }
+
+        .mat-tab-body-content {
+          padding: 0 1rem;
+        }
+      }
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+
+      .metric-item {
+        background: var(--metric-bg);
+        border-radius: 8px;
+        padding: 1.5rem;
+        
+        h4 {
+          margin: 0 0 1rem;
+          font-size: 0.95em;
+          color: var(--text-muted);
+        }
+
+        mat-progress-bar {
+          height: 8px;
+          border-radius: 4px;
+          
+          ::ng-deep .mat-progress-bar-fill::after {
+            background-color: var(--primary-color);
+          }
+        }
+
+        .impact-bars {
+          display: grid;
+          gap: 1rem;
+          
+          .impact-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            .impact-label {
+              flex: 0 0 120px;
+              font-size: 0.85em;
+              color: var(--text-muted);
+            }
+
+            .bar-container {
+              flex-grow: 1;
+              height: 8px;
+              background: var(--bar-bg);
+              border-radius: 4px;
+              overflow: hidden;
+              
+              .bar-fill {
+                height: 100%;
+                background: var(--primary-color);
+                transition: width 0.5s $ease-out-quad;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .stix-pattern {
+      background: var(--code-bg);
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      white-space: pre-wrap;
+      border: 1px solid var(--border-color);
+    }
+
+    .mitre-matrix {
+      .tactic-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        
+        .tactic-item {
+          background: var(--metric-bg);
+          border-radius: 6px;
+          padding: 1rem;
+          
+          .tactic-name {
+            display: block;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+          }
+          
+          .technique {
+            font-size: 0.95em;
+            font-weight: 500;
+            color: var(--text-primary);
+          }
+        }
+      }
+    }
+
+    .attack-path {
+      ul {
+        list-style: none;
+        padding-left: 1.5rem;
+        
+        li {
+          position: relative;
+          padding-left: 1.5rem;
+          margin-bottom: 0.8rem;
+          
+          &::before {
+            content: '➔';
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+          }
+        }
+      }
+    }
+
+    .third-party-risk {
+      .vendor-list {
+        display: grid;
+        gap: 1rem;
+        
+        .vendor-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem;
+          background: var(--metric-bg);
+          border-radius: 6px;
+          
+          .vendor-id {
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+          }
+          
+          .sla-status {
+            font-size: 0.85em;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            
+            &.breached {
+              background: rgba($color-critical, 0.15);
+              color: $color-critical;
+            }
+            
+            &:not(.breached) {
+              background: rgba($color-safe, 0.15);
+              color: $color-safe;
+            }
+          }
+        }
+      }
+    }
+
+    .action-list {
+      display: grid;
+      gap: 1.5rem;
+      
+      .action-item {
+        background: var(--metric-bg);
+        border-radius: 8px;
+        padding: 1.5rem;
+        border-left: 4px solid transparent;
+        
+        .action-header {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 1rem;
+          
+          mat-icon {
+            color: var(--primary-color);
+          }
+          
+          h5 {
+            margin: 0;
+            flex-grow: 1;
+          }
+          
+          .priority {
+            font-size: 0.85em;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            
+            &.high {
+              background: rgba($color-high-risk, 0.15);
+              color: $color-high-risk;
+            }
+            
+            &.critical {
+              background: rgba($color-critical, 0.15);
+              color: $color-critical;
+            }
+          }
+        }
+        
+        p {
+          margin: 0 0 1rem;
+          color: var(--text-muted);
+        }
+        
+        button {
+          margin-top: 1rem;
+        }
+      }
+    }
+
+    .detail-actions {
+      margin-top: auto;
+      padding-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      
+      button {
+        mat-icon {
+          margin-right: 0.5rem;
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1200px) {
+  .intel-feed-container {
+    grid-template-columns: 1fr;
+    height: auto;
+    
+    .threat-details {
+      height: 70vh;
+    }
+  }
+}
+
+@include dark-theme {
+  .threat-details {
+    --metric-bg: rgba(255,255,255,0.03);
+    --code-bg: #1a1a1a;
+  }
+}
+
+@include light-theme {
+  .threat-details {
+    --metric-bg: rgba(0,0,0,0.03);
+    --code-bg: #f8f8f8;
+  }
+}

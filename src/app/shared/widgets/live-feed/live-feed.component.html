@@ -1,0 +1,9 @@
+<div class="feed-container">
+  <div *ngFor="let item of feedItems; trackBy: trackByItemId" class="feed-item">
+    <mat-icon class="feed-icon">{{ getItemIcon(item.type) }}</mat-icon>
+    <div class="feed-content">
+      <h4 [safeHtml]="item.title"></h4>
+      <p [safeHtml]="item.description"></p>
+    </div>
+  </div>
+</div>

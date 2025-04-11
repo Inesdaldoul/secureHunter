@@ -1,0 +1,13 @@
+@use 'variables' as *;
+
+:root {
+  --bg-color: #1a1a1a;
+  --text-color: #ffffff;
+  --accent-color: #{$color-secondary};
+  --border-color: #{rgba($color-primary, 0.3)};
+
+  // Configuration spécifique au thème sombre
+  .security-header {
+    background: linear-gradient(to right, $color-primary, darken($color-primary, 15%));
+  }
+}

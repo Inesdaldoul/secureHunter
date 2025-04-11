@@ -1,0 +1,27 @@
+<header class="security-header">
+    <div class="branding">
+      <img src="assets/images/brand/logo-securehunter.webp" alt="SecureHunter" class="logo">
+      <span class="env-badge">{{ auditService.currentEnvironment | uppercase }}</span>
+    </div>
+  
+    <div class="threat-indicator">
+      <div class="threat-level-bar" [style.width.%]="threatLevel"></div>
+      <span class="threat-text">THREAT LEVEL: {{ threatLevel }}%</span>
+    </div>
+  
+    <nav class="quick-actions">
+      <button (click)="quickAction('lock')" class="icon-button" [title]="'Lock Session'">
+        <svg class="icon"><use href="assets/theme/icons/sprite/icons-sprite.prod.svg#lock"></use></svg>
+      </button>
+      
+      <button *ngIf="mfaEnabled" (click)="quickAction('mfa')" class="icon-button">
+        <svg class="icon"><use href="assets/theme/icons/sprite/icons-sprite.prod.svg#shield"></use></svg>
+      </button>
+  
+      <div class="connection-status">
+        <span *ngFor="let conn of activeConnections" class="status-badge {{ conn }}">
+          {{ conn | uppercase }}
+        </span>
+      </div>
+    </nav>
+  </header>

@@ -1,0 +1,29 @@
+{
+    "default-src": ["'self'"],
+    "script-src": [
+      "'self'",
+      "'sha256-INITIAL_SCRIPT_HASH'",
+      "https://apis.securehunter.ai"
+    ],
+    "style-src": [
+      "'self'",
+      "'unsafe-inline'",
+      "https://fonts.securehunter.ai"
+    ],
+    "img-src": [
+      "'self'",
+      "data:",
+      "https://*.tile.openstreetmap.org"
+    ],
+    "connect-src": [
+      "'self'",
+      "wss://realtime.securehunter.ai",
+      "https://api.securehunter.ai"
+    ],
+    "font-src": [
+      "'self'",
+      "https://fonts.securehunter.ai"
+    ],
+    "frame-src": ["'none'"],
+    "report-uri": "/api/csp-violations"
+  }

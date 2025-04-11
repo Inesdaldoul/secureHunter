@@ -1,0 +1,80 @@
+// incident-feed.component.scss
+@import 'src/styles/themes/variables';
+
+.incident-dashboard {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  height: 80vh;
+
+  .incident-list {
+    overflow-y: auto;
+    
+    .incident-card {
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      background: var(--card-bg);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: translateX(5px);
+      }
+      
+      &.selected {
+        border-left: 4px solid var(--primary-color);
+      }
+      
+      .incident-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        
+        .severity {
+          text-transform: uppercase;
+          font-weight: bold;
+          font-size: 0.8em;
+          
+          &.critical { color: $color-critical; }
+          &.high { color: $color-high-risk; }
+          &.medium { color: $color-medium-risk; }
+        }
+      }
+      
+      .incident-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85em;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  .incident-details {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+    
+    .timeline {
+      .timeline-event {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+        
+        .event-time {
+          flex: 0 0 80px;
+          font-family: var(--font-mono);
+          color: var(--text-muted);
+        }
+      }
+    }
+  }
+}

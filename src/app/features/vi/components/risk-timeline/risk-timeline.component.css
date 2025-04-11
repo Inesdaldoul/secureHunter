@@ -1,0 +1,15 @@
+.timeline-container {
+  background: var(--card-background);
+  padding: 1.5rem;
+  border-radius: 8px;
+  
+  ::ng-deep .line-chart {
+    .line {
+      stroke-width: 3px;
+    }
+    
+    .axis-label {
+      fill: var(--text-color);
+    }
+  }
+}

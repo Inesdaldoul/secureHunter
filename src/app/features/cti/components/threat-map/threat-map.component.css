@@ -1,0 +1,66 @@
+// threat-map.component.scss
+@import 'src/styles/themes/variables';
+
+.threat-map-container {
+  height: 70vh;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--elevation-4);
+
+  .map {
+    height: 100%;
+    background: var(--map-dark-bg);
+  }
+
+  .map-controls {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    background: var(--control-bg-transparent);
+    backdrop-filter: blur(4px);
+    border-radius: 6px;
+    padding: 1rem;
+  }
+
+  .filter-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    button {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      background: var(--button-bg);
+      color: var(--text-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &.active {
+        background: var(--primary-color);
+        border-color: transparent;
+      }
+    }
+  }
+
+  .intel-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9em;
+
+      .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+    "enableRealtimeThreatFeed": true,
+    "enableAIPredictions": false,
+    "experimentalFeatures": {
+      "darkModeV2": false,
+      "3DNetworkGraph": true
+    },
+    "clientOverrides": {
+      "clientA": {
+        "enableAIPredictions": true
+      }
+    }
+  }

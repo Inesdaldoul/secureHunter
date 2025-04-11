@@ -1,0 +1,21 @@
+<!-- security-footer.component.html -->
+<footer class="security-footer">
+  <div class="compliance-section">
+    <span class="label">COMPLIANCE:</span>
+    <span *ngFor="let cert of complianceStatus" class="compliance-badge {{ cert }}">
+      {{ cert }}
+    </span>
+  </div>
+
+  <div class="system-status">
+    <span class="status-dot [class]="systemStatus"></span>
+    <span class="status-text">{{ systemStatus | uppercase }}</span>
+    <span class="last-audit">Last audit: {{ lastAudit | date:'medium' }}</span>
+  </div>
+
+  <div class="legal-info">
+    <span>&copy; {{ year }} SecureHunter. All rights reserved.</span>
+    <a [routerLink]="['/privacy']" class="legal-link">Privacy Policy</a>
+    <a [href]="complianceDocUrl" class="legal-link" rel="noopener noreferrer">Compliance Documentation</a>
+  </div>
+</footer>

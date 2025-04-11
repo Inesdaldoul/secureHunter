@@ -1,0 +1,128 @@
+<!-- intel-feed.component.html -->
+<div class="threat-details" *ngIf="selectedThreat">
+  <div class="detail-header">
+    <h2>{{ normalizer.escapeHTML(selectedThreat.name) }}</h2>
+    <div class="threat-meta">
+      <span class="criticality-badge {{ selectedThreat.criticality }}">
+        {{ selectedThreat.criticality | uppercase }}
+      </span>
+      <span class="timestamp">
+        Detected: {{ selectedThreat.lifecycle.detection | date:'medium' }}
+      </span>
+    </div>
+  </div>
+
+  <mat-tab-group dynamicHeight>
+    <!-- Onglet Vue d'ensemble -->
+    <mat-tab label="Overview">
+      <div class="tab-content">
+        <p class="threat-description">
+          {{ normalizer.sanitizeHTML(selectedThreat.description) }}
+        </p>
+
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <h4>Confidence Level</h4>
+            <mat-progress-bar mode="determinate" 
+                [value]="selectedThreat.indicators[0]?.confidenceLevel || 0">
+            </mat-progress-bar>
+            <span>{{ selectedThreat.indicators[0]?.confidenceLevel || 0 }}%</span>
+          </div>
+
+          <div class="metric-item">
+            <h4>Potential Impact</h4>
+            <div class="impact-bars">
+              <div *ngFor="let impact of selectedThreat.context.potentialImpact | keyvalue"
+                   class="impact-bar">
+                <span class="impact-label">{{ impact.key | titlecase }}</span>
+                <div class="bar-container">
+                  <div class="bar-fill" [style.width.%]="impact.value"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Indicateurs -->
+    <mat-tab label="Indicators">
+      <div class="tab-content">
+        <div class="stix-pattern">
+          <h4>STIX Pattern</h4>
+          <code>{{ selectedThreat.indicators[0]?.stixPattern }}</code>
+        </div>
+
+        <div class="mitre-matrix">
+          <h4>MITRE ATT&CK® Mapping</h4>
+          <div class="tactic-list">
+            <div *ngFor="let indicator of selectedThreat.indicators" 
+                 class="tactic-item">
+              <span class="tactic-name">{{ indicator.mitreTactic }}</span>
+              <span class="technique">{{ indicator.mitreTechnique }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Contexte -->
+    <mat-tab label="Context">
+      <div class="tab-content">
+        <div class="attack-path">
+          <h4>Attack Path Analysis</h4>
+          <ul>
+            <li *ngFor="let step of selectedThreat.context.attackPathAnalysis">
+              {{ normalizer.escapeHTML(step) }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="third-party-risk">
+          <h4>Third Party Risks</h4>
+          <div class="vendor-list">
+            <div *ngFor="let vendor of selectedThreat.context.thirdPartyRisk" 
+                 class="vendor-item">
+              <span class="vendor-id">{{ vendor.vendorId | maskVendorId }}</span>
+              <span class="sla-status" [class.breached]="vendor.slaImpact">
+                SLA {{ vendor.slaImpact ? 'Breached' : 'Intact' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Atténuation -->
+    <mat-tab label="Mitigation">
+      <div class="tab-content">
+        <div class="action-list">
+          <div *ngFor="let action of selectedThreat.mitigationActions" 
+               class="action-item">
+            <div class="action-header">
+              <mat-icon>security</mat-icon>
+              <h5>{{ action.title }}</h5>
+              <span class="priority {{ action.priority }}">{{ action.priority }}</span>
+            </div>
+            <p>{{ action.description }}</p>
+            <button mat-stroked-button 
+                    (click)="triggerMitigation(action)">
+              Execute Action
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <div class="detail-actions">
+    <button mat-flat-button color="primary" (click)="shareThreatReport()">
+      <mat-icon>share</mat-icon>
+      Share Report
+    </button>
+    <button mat-flat-button (click)="exportToSOAR()">
+      <mat-icon>launch</mat-icon>
+      Push to SOAR
+    </button>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<!-- workflow-orchestrator.component.html -->
+<div class="workflow-container">
+  <div class="workflow-list">
+    <div *ngFor="let workflow of workflows" 
+         class="workflow-card"
+         [class.selected]="workflow.id === selectedWorkflow?.id"
+         (click)="selectedWorkflow = workflow">
+      <h4>{{ workflow.name }}</h4>
+      <div class="workflow-meta">
+        <span class="status {{ workflow.status }}">{{ workflow.status }}</span>
+        <span class="last-run">{{ workflow.lastRun | date:'short' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="workflow-editor" *ngIf="selectedWorkflow">
+    <div class="editor-header">
+      <h3>{{ selectedWorkflow.name }}</h3>
+      <button mat-raised-button 
+              color="primary"
+              (click)="executeWorkflow(selectedWorkflow)">
+        Execute
+      </button>
+    </div>
+    
+    <div class="visual-editor">
+      <!-- Drag and drop workflow builder -->
+    </div>
+
+    <div class="execution-logs">
+      <h4>Execution Logs</h4>
+      <pre>{{ executionLogs.join('\n') }}</pre>
+    </div>
+  </div>
+</div>

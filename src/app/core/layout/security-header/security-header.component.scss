@@ -1,0 +1,93 @@
+// security-header.component.scss
+@import 'src/styles/themes/variables';
+
+.security-header {
+  display: grid;
+  grid-template-columns: 250px 1fr auto;
+  align-items: center;
+  padding: 0 2rem;
+  background: var(--header-bg);
+  border-bottom: 3px solid var(--threat-level-color);
+
+  .branding {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    
+    .logo {
+      height: 40px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .env-badge {
+      background: $color-warning;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.8rem;
+      font-family: var(--font-secondary);
+    }
+  }
+
+  .threat-indicator {
+    position: relative;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    overflow: hidden;
+    
+    .threat-level-bar {
+      height: 100%;
+      background: linear-gradient(90deg, $color-safe 0%, $color-critical 100%);
+      transition: width 0.5s ease;
+    }
+
+    .threat-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: difference;
+    }
+  }
+
+  .quick-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+
+    .icon-button {
+      background: none;
+      border: none;
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.1);
+      }
+
+      .icon {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+      }
+    }
+
+    .connection-status {
+      display: flex;
+      gap: 0.5rem;
+
+      .status-badge {
+        padding: 0.2rem 0.5rem;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        
+        &.vi { background: $color-vi; }
+        &.cti { background: $color-cti; }
+        &.asm { background: $color-asm; }
+        &.soar { background: $color-soar; }
+      }
+    }
+  }
+}

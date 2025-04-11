@@ -1,0 +1,61 @@
+// exposure-analysis.component.scss
+@import 'src/styles/themes/variables';
+
+.exposure-dashboard {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  height: 70vh;
+
+  .summary-cards {
+    display: grid;
+    gap: 1.5rem;
+    align-content: start;
+    
+    .summary-card {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      
+      .metric-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        
+        h4 {
+          margin: 0;
+          font-size: 0.95em;
+          color: var(--text-muted);
+        }
+        
+        .metric-value {
+          font-weight: 600;
+          font-size: 1.2em;
+          
+          &.critical { color: $color-critical; }
+          &.high { color: $color-high-risk; }
+          &.medium { color: $color-medium-risk; }
+          &.low { color: $color-low-risk; }
+        }
+      }
+      
+      mat-progress-bar {
+        height: 8px;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .risk-chart {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    
+    ::ng-deep .advanced-pie {
+      .item-value {
+        font-size: 1.2em !important;
+        font-weight: 600 !important;
+      }
+    }
+  }
+}

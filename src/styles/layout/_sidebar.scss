@@ -1,0 +1,19 @@
+.dynamic-sidebar {
+  background: var(--bg-color);
+  color: var(--text-color);
+  width: 250px;
+  transition: transform 0.3s ease;
+
+  &--collapsed {
+    transform: translateX(-100%);
+  }
+
+  &__menu-item {
+    padding: $spacing-sm;
+    border-bottom: 1px solid var(--border-color);
+
+    &:hover {
+      background: rgba(var(--accent-color), 0.1);
+    }
+  }
+}

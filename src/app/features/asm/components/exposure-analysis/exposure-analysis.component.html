@@ -1,0 +1,25 @@
+<!-- exposure-analysis.component.html -->
+<div class="exposure-dashboard">
+  <div class="summary-cards">
+    <div class="summary-card" *ngFor="let metric of exposureData.metrics">
+      <div class="metric-header">
+        <h4>{{ metric.label }}</h4>
+        <span class="metric-value {{ metric.status }}">
+          {{ metric.value | number }}
+        </span>
+      </div>
+      <mat-progress-bar mode="determinate" 
+                        [value]="metric.percentage"
+                        [color]="metric.status">
+      </mat-progress-bar>
+    </div>
+  </div>
+
+  <div class="risk-chart">
+    <ngx-charts-advanced-pie-chart
+      [results]="chartData"
+      [scheme]="riskColorScheme"
+      (select)="onChartSelect($event)">
+    </ngx-charts-advanced-pie-chart>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+<mat-list role="list" class="alerts-container">
+  <mat-list-item *ngFor="let alert of alerts | slice:0:maxVisible; trackBy: trackByAlertId" 
+                 role="listitem" class="alert-item">
+    <mat-icon matListIcon [color]="alert.severity === 'critical' ? 'warn' : 'accent'">
+      {{ alert.severity === 'critical' ? 'warning' : 'notifications' }}
+    </mat-icon>
+    <h3 matLine class="alert-title">{{ alert.title }}</h3>
+    <p matLine class="alert-description">{{ alert.description }}</p>
+    <button mat-icon-button (click)="handleAcknowledge(alert.id)">
+      <mat-icon>check_circle</mat-icon>
+    </button>
+  </mat-list-item>
+</mat-list>

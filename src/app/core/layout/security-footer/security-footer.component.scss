@@ -1,0 +1,76 @@
+// security-footer.component.scss
+@import 'src/styles/themes/variables';
+
+.security-footer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  padding: 1rem 2rem;
+  background: var(--footer-bg);
+  border-top: 1px solid var(--border-color);
+  font-size: 0.9rem;
+
+  .compliance-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .label {
+      opacity: 0.7;
+    }
+
+    .compliance-badge {
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.8rem;
+
+      &.GDPR { background: $color-gdpr; }
+      &.HIPAA { background: $color-hipaa; }
+      &.PCI-DSS { background: $color-pci; }
+    }
+  }
+
+  .system-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+
+      &.healthy { background: $color-safe; }
+      &.degraded { background: $color-warning; }
+      &.critical { background: $color-critical; }
+    }
+  }
+
+  .legal-info {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+
+    .legal-link {
+      color: var(--link-color);
+      text-decoration: none;
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: currentColor;
+        transition: width 0.3s ease;
+      }
+
+      &:hover::after {
+        width: 100%;
+      }
+    }
+  }
+}

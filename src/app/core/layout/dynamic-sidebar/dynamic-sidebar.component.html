@@ -1,0 +1,22 @@
+<!-- dynamic-sidebar.component.html -->
+<nav class="sidebar" [class.collapsed]="isCollapsed">
+    <button class="toggle-btn" (click)="toggleCollapse()">
+      <svg class="icon"><use [attr.href]="'assets/theme/icons/sprite/icons-sprite.prod.svg#' + (isCollapsed ? 'menu' : 'close')"></use></svg>
+    </button>
+  
+    <div class="menu-section">
+      <div *ngFor="let item of menuItems" class="menu-item" 
+           [class.active]="isMenuItemActive(item.routePath)"
+           [class.disabled]="!item.isActive">
+        <a [routerLink]="item.routePath" class="menu-link">
+          <svg class="menu-icon"><use [attr.href]="'assets/theme/icons/sprite/icons-sprite.prod.svg#' + item.icon"></use></svg>
+          <span class="menu-label">{{ item.label }}</span>
+          <span *ngIf="item.badge" class="menu-badge">{{ item.badge }}</span>
+        </a>
+      </div>
+    </div>
+  
+    <div class="contextual-actions">
+      <ng-content select="[sidebar-actions]"></ng-content>
+    </div>
+  </nav>

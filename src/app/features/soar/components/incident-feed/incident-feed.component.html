@@ -1,0 +1,37 @@
+<!-- incident-feed.component.html -->
+<div class="incident-dashboard">
+  <div class="incident-list">
+    <div *ngFor="let incident of incidents" 
+         class="incident-card"
+         [class.selected]="incident.id === selectedIncident?.id"
+         (click)="selectedIncident = incident">
+      <div class="incident-header">
+        <span class="severity {{ incident.severity }}">{{ incident.severity }}</span>
+        <span class="timestamp">{{ incident.created | date:'short' }}</span>
+      </div>
+      <h4>{{ incident.title }}</h4>
+      <div class="incident-meta">
+        <span class="source">{{ incident.source }}</span>
+        <span class="status">{{ incident.status }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="incident-details" *ngIf="selectedIncident">
+    <div class="detail-header">
+      <h3>{{ selectedIncident.title }}</h3>
+      <div class="actions">
+        <button mat-button (click)="updateStatus(selectedIncident, 'closed')">
+          Mark as Resolved
+        </button>
+      </div>
+    </div>
+    
+    <div class="timeline">
+      <div *ngFor="let event of selectedIncident.timeline" class="timeline-event">
+        <span class="event-time">{{ event.timestamp | date:'shortTime' }}</span>
+        <span class="event-description">{{ event.description }}</span>
+      </div>
+    </div>
+  </div>
+</div>

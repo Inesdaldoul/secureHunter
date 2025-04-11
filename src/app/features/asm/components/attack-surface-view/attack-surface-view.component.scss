@@ -1,0 +1,75 @@
+// attack-surface-view.component.scss
+@import 'src/styles/themes/variables';
+
+.surface-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  height: 70vh;
+
+  .topology-view {
+    position: relative;
+    background: var(--surface-bg);
+    border-radius: 8px;
+    overflow: hidden;
+
+    .asset-map {
+      height: 100%;
+      width: 100%;
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      background: var(--legend-bg);
+      padding: 1rem;
+      border-radius: 6px;
+      
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+        
+        .asset-icon {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          
+          &.server { background: $asset-server; }
+          &.cloud { background: $asset-cloud; }
+          &.iot { background: $asset-iot; }
+        }
+      }
+    }
+  }
+
+  .asset-details {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    
+    .security-metrics {
+      display: grid;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      
+      .metric {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem;
+        background: var(--metric-bg);
+        border-radius: 4px;
+        
+        &-value {
+          font-weight: 600;
+          
+          &.critical { color: $color-critical; }
+          &.warning { color: $color-warning; }
+          &.safe { color: $color-safe; }
+        }
+      }
+    }
+  }
+}

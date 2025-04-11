@@ -1,0 +1,12 @@
+@use 'variables' as *;
+
+:root {
+  --bg-color: #ffffff;
+  --text-color: #2d3e50;
+  --accent-color: #{$color-primary};
+  --border-color: #{rgba($color-primary, 0.1)};
+
+  .security-header {
+    background: linear-gradient(to right, lighten($color-primary, 15%), $color-primary);
+  }
+}

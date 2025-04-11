@@ -1,0 +1,47 @@
+{
+  "clientId": "clientA",
+  "configVersion": "2.3.1",
+  "dashboard": {
+    "defaultView": "vi",
+    "refreshIntervals": {
+      "vi": 30,
+      "cti": 60,
+      "asm": 300,
+      "soar": 15
+    },
+    "riskThresholds": {
+      "critical": 9.0,
+      "high": 7.0,
+      "medium": 4.0
+    }
+  },
+  "security": {
+    "cspProfile": "strict",
+    "sessionManagement": {
+      "timeout": 3600,
+      "mfaRequired": true,
+      "inactivityLock": 900
+    },
+    "dataProtection": {
+      "encryptionLevel": "AES-256-GCM",
+      "keyRotation": 86400
+    }
+  },
+  "features": {
+    "ml": {
+      "threatDetection": {
+        "enabled": true,
+        "modelVersion": "1.4.2",
+        "confidenceThreshold": 0.92
+      }
+    },
+    "ui": {
+      "theme": "dark",
+      "density": "compact",
+      "accessibility": {
+        "highContrast": true,
+        "screenReader": false
+      }
+    }
+  }
+}

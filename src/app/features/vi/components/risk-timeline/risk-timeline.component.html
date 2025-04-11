@@ -1,0 +1,11 @@
+<!-- risk-timeline.component.html -->
+<div class="timeline-container">
+  <ngx-charts-line-chart
+    [view]="view"
+    [results]="timelineData"
+    [scheme]="colorScheme"
+    [xAxis]="true"
+    [yAxis]="true"
+    (select)="onSelect($event)">
+  </ngx-charts-line-chart>
+</div>

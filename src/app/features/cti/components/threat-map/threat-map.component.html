@@ -1,0 +1,21 @@
+<!-- threat-map.component.html -->
+<div class="threat-map-container">
+  <div id="threat-map" class="map"></div>
+  
+  <div class="map-controls">
+    <div class="filter-controls">
+      <button *ngFor="let filter of filters" 
+              [class.active]="currentFilter === filter.value"
+              (click)="applyFilter(filter.value)">
+        {{ filter.label }}
+      </button>
+    </div>
+    
+    <div class="intel-legend">
+      <div class="legend-item" *ngFor="let level of threatLevels">
+        <span class="legend-color" [style.background]="level.color"></span>
+        {{ level.label }}
+      </div>
+    </div>
+  </div>
+</div>

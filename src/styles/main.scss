@@ -1,0 +1,25 @@
+@use './themes/variables';
+@use './themes/dark';
+@use './themes/light';
+@use './layout/header';
+@use './layout/sidebar';
+
+// Application du thème par défaut
+@include dark;
+
+body {
+  font-family: variables.$font-family-base;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding-top: 60px; // Pour le header fixe
+}
+
+// Switch de thème dynamique
+.theme-light {
+  @include light;
+}
+
+.theme-dark {
+  @include dark;
+}

@@ -1,0 +1,25 @@
+<!-- attack-surface-view.component.html -->
+<div class="surface-container">
+  <div class="topology-view">
+    <div class="asset-map" #assetMap></div>
+    <div class="legend">
+      <div *ngFor="let assetType of assetTypes" class="legend-item">
+        <span class="asset-icon {{ assetType }}"></span>
+        {{ assetType | titlecase }}
+      </div>
+    </div>
+  </div>
+
+  <div class="asset-details" *ngIf="selectedAsset">
+    <h3>{{ selectedAsset.name }}</h3>
+    <div class="security-metrics">
+      <div class="metric" *ngFor="let metric of selectedAsset.metrics">
+        <span class="metric-label">{{ metric.label }}</span>
+        <span class="metric-value {{ metric.status }}">
+          {{ metric.value }}
+        </span>
+      </div>
+    </div>
+    <button mat-button (click)="runScan(selectedAsset)">Rescan</button>
+  </div>
+</div>

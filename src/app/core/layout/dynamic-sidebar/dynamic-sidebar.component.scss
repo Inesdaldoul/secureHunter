@@ -1,0 +1,109 @@
+// dynamic-sidebar.component.scss
+@import 'src/styles/themes/variables';
+
+.sidebar {
+  $sidebar-width: 280px;
+  $collapsed-width: 60px;
+  
+  width: $sidebar-width;
+  height: 100vh;
+  background: var(--sidebar-bg);
+  transition: width 0.3s ease;
+  position: relative;
+  box-shadow: 3px 0 15px rgba(0,0,0,0.1);
+
+  &.collapsed {
+    width: $collapsed-width;
+
+    .menu-label,
+    .menu-badge {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  .toggle-btn {
+    position: absolute;
+    right: -40px;
+    top: 1rem;
+    background: var(--sidebar-bg);
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 0 5px 5px 0;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+
+    .icon {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+  }
+
+  .menu-section {
+    padding: 2rem 0;
+  }
+
+  .menu-item {
+    position: relative;
+    margin: 0.5rem 0;
+
+    &.active {
+      .menu-link {
+        background: var(--menu-active-bg);
+        color: var(--menu-active-color);
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        width: 3px;
+        background: $color-primary;
+      }
+    }
+  }
+
+  .menu-link {
+    display: flex;
+    align-items: center;
+    padding: 1rem 2rem;
+    color: var(--menu-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: var(--menu-hover-bg);
+    }
+
+    .menu-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 1rem;
+      flex-shrink: 0;
+    }
+
+    .menu-label {
+      white-space: nowrap;
+      transition: opacity 0.3s ease;
+    }
+
+    .menu-badge {
+      margin-left: auto;
+      background: $color-alert;
+      padding: 0.2rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+  }
+
+  .contextual-actions {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+  }
+}
