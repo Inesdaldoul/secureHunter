@@ -3,9 +3,20 @@ import { Component, OnInit } from '@angular/core';
 import { ThemeService } from './core/services/theme.service';
 import { UniversalConnector, ServiceType } from './core/connectors/universal-connector.service';
 import { ConnectionConfig } from './core/interfaces/connection-config.interface';
+import { SecurityHeaderComponent } from './core/layout/security-header/security-header.component';
+import { SecurityFooterComponent } from './core/layout/security-footer/security-footer.component';
+import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
+  standalone: true, // ← Needed for standalone setup
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    SecurityHeaderComponent,
+    SecurityFooterComponent
+  ],
   template: `
     <div class="app-container">
       <app-security-header></app-security-header>

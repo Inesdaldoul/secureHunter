@@ -3,15 +3,19 @@ import { Threat, ThreatIndicator, ThreatCriticality } from '../interfaces/threat
 import { SecurityAuditService } from '../services/security-audit.service';
 import { ErrorHandlerService } from '../services/error-handler.service';
 import { SanitizationService } from '../shared/services/sanitization.service';
+import { ServiceType } from '../connectors/universal-connector.service';
 
 @Injectable({ providedIn: 'root' })
 export class DataNormalizer {
   private readonly NORMALIZATION_SCHEMAS = {
-    [ServiceType.VI]: this.normalizeVIData.bind(this),
-    [ServiceType.CTI]: this.normalizeCTIData.bind(this),
-    [ServiceType.ASM]: this.normalizeASMData.bind(this),
-    [ServiceType.SOAR]: this.normalizeSOARData.bind(this)
+    [ServiceType.VI]: this.normalizeData.bind(this),
+    [ServiceType.CTI]: this.normalizeData.bind(this),
+    [ServiceType.ASM]: this.normalizeData.bind(this),
+    [ServiceType.SOAR]: this.normalizeData.bind(this)
   };
+  normalizeCTIData: any;
+  extractVulnerabilityIndicators: any;
+  calculateVulnerabilityImpact: any;
 
   constructor(
     private sanitizer: SanitizationService,
@@ -73,7 +77,7 @@ export class DataNormalizer {
       type: 'DATA_NORMALIZATION_FAILURE',
       severity: 'HIGH',
       rawData: this.sanitizer.sanitizeForLogs(rawData),
-      error: this.errorHandler.processError(error)
+      error: this.errorHandler.processHttpError(error)
     });
 
     this.errorHandler.handleError(error, {

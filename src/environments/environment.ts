@@ -1,17 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://api-dev.securehunter.ai/v1',
+  apiBaseUrl: 'http://localhost:4200/api',
   enableDebugTools: true,
-  cspPolicies: {
-    defaultSrc: "'self'",
-    connectSrc: "'self' https://api-dev.securehunter.ai",
-  },
-  featureToggles: {
-    realtimeThreatMap: true,
-    aiPredictions: false,
-  },
-  security: {
-    sessionTimeout: 1800, // 30 minutes
-    mfaRequired: false,
-  }
+  AUDIT_ENCRYPTION_KEY: 'default-secure-key'
 };

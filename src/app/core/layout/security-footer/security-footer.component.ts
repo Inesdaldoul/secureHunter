@@ -1,26 +1,13 @@
-// security-footer.component.ts
-import { Component, OnInit } from '@angular/core';
-import { SecurityAuditService } from '../../services/security-audit.service';
-import { ComplianceService } from '../../services/compliance.service';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-security-footer',
-  templateUrl: './security-footer.component.html',
+  template: `
+    <footer class="security-footer">
+      <!-- Your footer content here -->
+      <p>© 2024 SecureHunter. All rights reserved.</p>
+    </footer>
+  `,
   styleUrls: ['./security-footer.component.scss']
 })
-export class SecurityFooterComponent implements OnInit {
-  complianceStatus!: string[];
-  systemStatus!: string;
-  lastAudit!: Date;
-
-  constructor(
-    public auditService: SecurityAuditService,
-    private compliance: ComplianceService
-  ) {}
-
-  ngOnInit() {
-    this.complianceStatus = this.compliance.getActiveCertifications();
-    this.systemStatus = this.auditService.getSystemHealthStatus();
-    this.lastAudit = this.auditService.getLastAuditDate();
-  }
-}
+export class SecurityFooterComponent {}

@@ -11,11 +11,13 @@ import { catchError, switchMap } from 'rxjs/operators';
 import { SecurityAuditService } from './security-audit.service';
 import { UniversalConnector } from '../connectors/universal-connector.service';
 import { ErrorHandlerService } from './error-handler.service';
-import { FeatureToggleService } from '../config/feature-toggles.ts';
+import { FeatureToggleService } from './../config/feature-toggles';
 
 @Injectable({ providedIn: 'root' })
 export class SecurityInterceptor implements HttpInterceptor {
   private isTokenRefreshInProgress = false;
+  isAuthError: any;
+  extractErrorDetails: any;
 
   constructor(
     private injector: Injector,
@@ -73,6 +75,9 @@ export class SecurityInterceptor implements HttpInterceptor {
     return token ? 
       req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) :
       req;
+  }
+  getServiceToken(serviceType: string) {
+    throw new Error('Method not implemented.');
   }
 
   private handleAuthError(error: HttpErrorResponse, req: HttpRequest<any>, next: HttpHandler) {

@@ -1,6 +1,4 @@
-// security-footer.component.scss
-@import 'src/styles/themes/variables';
-
+@use './../../../../styles/themes/variables' as *;
 .security-footer {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

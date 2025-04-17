@@ -13,13 +13,15 @@ import { SecurityInterceptor } from './core/services/security-interceptor';
 import { ThemeService } from './core/services/theme.service';
 import { JwtGuard } from './core/guards/jwt.guard';
 import { RoleGuard } from './core/guards/role.guard';
-import { FeatureToggleService } from './core/services/feature-toggle.service';
+import { FeatureToggleService } from './core/config/feature-toggles';
 import { SecurityAuditService } from './core/services/security-audit.service';
-import { MLPredictorService } from '../shared/services/ml-predictor.service';
 
-// Configuration
+// Config token
 import { SESSION_CONFIG } from './core/config/audit-config';
 import { environment } from '../environments/environment';
+
+// ML predictor (we’ll create this file next)
+import { MlPredictorService } from './core/services/ml-predictor.service';
 
 // Components
 import { AppComponent } from './app.component';
@@ -41,7 +43,7 @@ import { SecurityFooterComponent } from './core/layout/security-footer/security-
     MatIconModule,
     MatButtonModule,
     LeafletModule,
-    RouterModule.forRoot([], { 
+    RouterModule.forRoot([], {
       enableTracing: environment.enableDebugTools,
       scrollPositionRestoration: 'enabled',
       anchorScrolling: 'enabled'
@@ -52,21 +54,15 @@ import { SecurityFooterComponent } from './core/layout/security-footer/security-
     ThemeService,
     FeatureToggleService,
     SecurityAuditService,
-    MLPredictorService,
-    { 
-      provide: HTTP_INTERCEPTORS, 
-      useClass: SecurityInterceptor, 
-      multi: true 
-    },
+    MlPredictorService,
+    { provide: HTTP_INTERCEPTORS, useClass: SecurityInterceptor, multi: true },
     JwtGuard,
     RoleGuard,
     {
       provide: DomSanitizer,
-      useValue: {
-        sanitize: (ctx: SecurityContext, value: string) => value
-      }
+      useValue: { sanitize: (ctx: SecurityContext, value: string) => value }
     }
   ],
-  bootstrap: [AppComponent]ml-predictor.service.ts
+  bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

@@ -2,6 +2,7 @@ export const environment = {
   production: true,
   apiBaseUrl: 'https://api.securehunter.ai/v1',
   enableDebugTools: false,
+  AUDIT_ENCRYPTION_KEY: 'default-secure-key',
   cspPolicies: {
     defaultSrc: "'none'",
     scriptSrc: "'self' 'sha256-...'",

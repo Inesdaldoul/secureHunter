@@ -1,38 +1,22 @@
-// src/app/core/services/security-audit.service.ts
 import { Injectable, Inject, Optional } from '@angular/core';
 import { UniversalConnector, ServiceType } from '../connectors/universal-connector.service';
-import { SESSION_CONFIG, AuditConfig } from '../config/audit.config';
 import { LocalStorageService } from './local-storage.service';
 import { NetworkService } from './network.service';
+import { AuthService } from './auth.service';
+import { SESSION_CONFIG, AuditConfig } from '../config/audit-config';
+import { environment } from '../../../environments/environment';
+// TODO: Si vous avez un CryptoService, assurez-vous qu'il existe et que le chemin est correct
 import { CryptoService } from './crypto.service';
-import { EnvironmentService } from './environment.service';
-import { AuthService } from '../../auth/services/auth.service';
-import { DeviceService } from './device.service';
+// TODO: Si vous avez un DeviceService, assurez-vous qu'il existe et que le chemin est correct
+import { DeviceService } from './../services/device.service';
 
 export type AuditSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
-interface AuditEventBase {
+export interface AuditEvent {
   eventType: string;
   severity: AuditSeverity;
+  category: 'SYSTEM' | 'SECURITY' | 'USER';
   context: Record<string, unknown>;
-}
-
-interface SystemAuditEvent extends AuditEventBase {
-  category: 'SYSTEM';
-  subsystem: string;
-}
-
-interface SecurityAuditEvent extends AuditEventBase {
-  category: 'SECURITY';
-  threatLevel: number;
-}
-
-interface UserAuditEvent extends AuditEventBase {
-  category: 'USER';
-  userId: string;
-}
-
-type AuditEvent = (SystemAuditEvent | SecurityAuditEvent | UserAuditEvent) & {
   timestamp: Date;
   metadata: {
     sessionId: string;
@@ -41,10 +25,19 @@ type AuditEvent = (SystemAuditEvent | SecurityAuditEvent | UserAuditEvent) & {
     ipHash: string;
     environment: string;
   };
-};
+  // Champs optionnels selon le type d'événement
+  subsystem?: string;
+  threatLevel?: number;
+  userId?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class SecurityAuditService {
+  logDashboardEvent: any;
+  logDataIncident: any;
+  logError(arg0: { eventType: string; severity: string; context: { service: ServiceType; }; error: Error; }) {
+    throw new Error('Method not implemented.');
+  }
   private eventBuffer: AuditEvent[] = [];
   private readonly encryptionKey: string;
   private readonly BUFFER_SIZE: number;
@@ -58,11 +51,10 @@ export class SecurityAuditService {
     private crypto: CryptoService,
     private auth: AuthService,
     private device: DeviceService,
-    private env: EnvironmentService,
     @Optional() @Inject(SESSION_CONFIG) config?: AuditConfig
   ) {
-    this.BUFFER_SIZE = config?.bufferSize || 20;
-    this.encryptionKey = this.env.get('AUDIT_ENCRYPTION_KEY') || 'fallback-key-needs-change';
+    this.BUFFER_SIZE = config?.bufferSize ?? 20;
+    this.encryptionKey = environment.AUDIT_ENCRYPTION_KEY || 'default-secure-key';
     this.initializeBufferRecovery();
   }
 
@@ -71,10 +63,10 @@ export class SecurityAuditService {
       const encryptedLogs = await this.storage.get<string>('audit_logs');
       if (encryptedLogs) {
         const decrypted = await this.crypto.decrypt(encryptedLogs, this.encryptionKey);
-        this.eventBuffer = JSON.parse(decrypted) || [];
+        this.eventBuffer = (JSON.parse(decrypted) as AuditEvent[]) || [];
         await this.flushLogs();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to recover audit logs:', this.sanitizeError(error));
     }
   }
@@ -84,11 +76,11 @@ export class SecurityAuditService {
       ...event,
       timestamp: new Date(),
       metadata: {
-        sessionId: this.auth.currentSessionId || 'anonymous',
+        sessionId: this.auth.currentSessionId ?? 'anonymous',
         deviceId: await this.device.getSecureDeviceId(),
         userAgent: navigator.userAgent,
-        ipHash: this.crypto.hash(await this.network.getClientIP()),
-        environment: this.env.current
+        ipHash: this.crypto.hash(await this.network.getClientIp()),
+        environment: environment.production ? 'production' : 'development'
       }
     };
 
@@ -105,31 +97,29 @@ export class SecurityAuditService {
     error?: Error;
   }) {
     const sanitizedError = payload.error ? this.sanitizeError(payload.error) : undefined;
-    
-    const event: SecurityAuditEvent = {
+
+    await this.log({
       ...payload,
       category: 'SECURITY',
+      threatLevel: this.calculateThreatLevel(payload.severity),
       context: {
         ...payload.context,
         ...(sanitizedError && { error: sanitizedError })
-      },
-      threatLevel: this.calculateThreatLevel(payload.severity)
-    };
-
-    await this.log(event);
+      }
+    });
   }
 
   private calculateThreatLevel(severity: AuditSeverity): number {
-    const levels = { LOW: 1, MEDIUM: 3, HIGH: 5, CRITICAL: 10 };
-    return levels[severity] + (this.env.production ? 0 : -1);
+    const levels: Record<AuditSeverity, number> = { LOW: 1, MEDIUM: 3, HIGH: 5, CRITICAL: 10 };
+    return levels[severity] + (environment.production ? 0 : -1);
   }
 
-  private sanitizeError(error: Error): Record<string, unknown> {
+  private sanitizeError(error: Error) {
     return {
       name: error.name,
       message: error.message.replace(/password=['"][^'"]+['"]/gi, 'password=***'),
-      stack: error.stack?.split('\n').map(line => 
-        line.replace(/(at .* \()(.*)(:.*:.*\))/, (_, pre, path, post) => 
+      stack: error.stack?.split('\n').map(line =>
+        line.replace(/(at .* \()(.*)(:.*:.*\))/, (_, pre, path, post) =>
           `${pre}${path.split('/').pop()}${post}`
         )
       )
@@ -137,7 +127,7 @@ export class SecurityAuditService {
   }
 
   private async flushLogs(): Promise<void> {
-    if (this.eventBuffer.length === 0) return;
+    if (!this.eventBuffer.length) return;
 
     try {
       if (!this.network.isOnline) {
@@ -145,14 +135,14 @@ export class SecurityAuditService {
         return;
       }
 
-      const payload = this.prepareEncryptedPayload();
+      const payload = await this.prepareEncryptedPayload();
       await this.connector
         .getServiceConnection(ServiceType.SOAR)
         .logSecurityEvents(payload);
 
       this.eventBuffer = [];
       this.retryCount = 0;
-    } catch (error) {
+    } catch (error: any) {
       if (this.retryCount < this.MAX_RETRIES) {
         this.retryCount++;
         setTimeout(() => this.flushLogs(), 3000 * this.retryCount);
@@ -170,21 +160,19 @@ export class SecurityAuditService {
         this.encryptionKey
       );
       await this.storage.set('audit_logs', encrypted);
-    } catch (error) {
-      console.error('Critical failure persisting audit logs:', 
-        this.sanitizeError(error as Error));
+    } catch (error: any) {
+      console.error('Critical failure persisting audit logs:', this.sanitizeError(error));
     }
   }
 
-  private prepareEncryptedPayload() {
+  private async prepareEncryptedPayload() {
+    const payloadString = JSON.stringify(this.eventBuffer);
+    const encryptedPayload = await this.crypto.encrypt(payloadString, this.encryptionKey);
     return {
-      environment: this.env.current,
+      environment: environment.production ? 'production' : 'development',
       timestamp: new Date().toISOString(),
-      checksum: this.crypto.hash(JSON.stringify(this.eventBuffer)),
-      payload: this.crypto.encrypt(
-        JSON.stringify(this.eventBuffer),
-        this.encryptionKey
-      )
+      checksum: this.crypto.hash(payloadString),
+      payload: encryptedPayload
     };
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable, Inject, Optional } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ErrorHandlerService } from '../services/error-handler.service';
-import { SecurityAuditService, AuditSeverity } from '../services/security-audit.service';
+import { SecurityAuditService } from '../services/security-audit.service';
 import { FeatureToggleService } from '../config/feature-toggles';
 import { AbstractAdapter } from '../interfaces/adapter.interface';
 import { ConnectionConfig } from '../interfaces/connection-config.interface';
@@ -13,9 +13,7 @@ export enum ServiceType {
   SOAR = 'soar'
 }
 
-interface ServiceConnection {
-  [key: string]: any;
-}
+type ServiceConnection = any;
 
 @Injectable({ providedIn: 'root' })
 export class UniversalConnector {
@@ -30,7 +28,17 @@ export class UniversalConnector {
     @Optional() @Inject('API_ENDPOINTS') private apiEndpoints?: Record<ServiceType, string>
   ) {}
 
-  getServiceConnection(type: ServiceType): any {
+  /**
+   * Placeholder for token refresh logic.
+   */
+  refreshAuthToken(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  /**
+   * Get an active connection for a service.
+   */
+  getServiceConnection(type: ServiceType): ServiceConnection {
     const connection = this.activeConnections.get(type);
     if (!connection) {
       throw this.errorHandler.createError(
@@ -42,29 +50,38 @@ export class UniversalConnector {
     return connection;
   }
 
+  /**
+   * Register an adapter for a service type.
+   */
   registerAdapter(type: ServiceType, adapter: AbstractAdapter): void {
     if (!this.featureToggle.isEnabled(type)) {
       this.securityAudit.log({
         eventType: 'ADAPTER_DISABLED',
         severity: 'MEDIUM',
-        context: { service: type }
+        context: { service: type },
+        category: 'SYSTEM'
       });
       return;
     }
 
     this.adapters.set(type, adapter);
+
     this.securityAudit.log({
       eventType: 'ADAPTER_REGISTERED',
       severity: 'LOW',
-      context: { service: type }
+      context: { service: type },
+      category: 'SYSTEM'
     });
   }
 
+  /**
+   * Establish a connection with the given adapter and config.
+   */
   async connect<T>(type: ServiceType, config: ConnectionConfig): Promise<T> {
     try {
       this.validateServiceType(type);
       const adapter = this.getAdapterInstance(type);
-      
+
       const baseUrl = this.apiEndpoints?.[type] || config.baseUrl;
       if (!baseUrl?.startsWith('http')) {
         throw this.errorHandler.createError(
@@ -75,14 +92,15 @@ export class UniversalConnector {
       }
 
       const connection = await adapter.initialize({ ...config, baseUrl });
-      
       this.activeConnections.set(type, connection);
+
       this.securityAudit.log({
         eventType: 'CONNECTION_SUCCESS',
         severity: 'LOW',
-        context: { service: type }
+        context: { service: type },
+        category: 'SYSTEM'
       });
-      
+
       return connection as T;
     } catch (error) {
       this.handleConnectionError(type, error as Error);
@@ -90,19 +108,56 @@ export class UniversalConnector {
     }
   }
 
+  /**
+   * Disconnect from all active services.
+   */
+  async disconnectAll(): Promise<void> {
+    const results = await Promise.allSettled(
+      Array.from(this.activeConnections).map(async ([type, connection]) => {
+        try {
+          const adapter = this.adapters.get(type);
+          if (adapter) {
+            await adapter.terminate(connection);
+            this.securityAudit.log({
+              eventType: 'CONNECTION_CLOSED',
+              severity: 'LOW',
+              context: { service: type },
+              category: 'SYSTEM'
+            });
+          }
+        } catch (error) {
+          this.errorHandler.handleError(error as Error, {
+            category: 'DISCONNECT',
+            service: type
+          });
+        }
+      })
+    );
+
+    this.handleDisconnectResults(results);
+    this.activeConnections.clear();
+  }
+
+  /**
+   * Internal: Validates that a service has a registered adapter.
+   */
   private validateServiceType(type: ServiceType): void {
     if (!this.adapters.has(type)) {
       const errorMessage = `No adapter registered for ${type}`;
+      const error = new Error(errorMessage);
       this.securityAudit.logError({
         eventType: 'ADAPTER_NOT_FOUND',
         severity: 'HIGH',
         context: { service: type },
-        error: new Error(errorMessage)
+        error
       });
-      throw new Error(errorMessage);
+      throw error;
     }
   }
 
+  /**
+   * Internal: Gets the adapter instance for a service type.
+   */
   private getAdapterInstance(type: ServiceType): AbstractAdapter {
     const adapter = this.adapters.get(type);
     if (!adapter) {
@@ -122,59 +177,36 @@ export class UniversalConnector {
     return adapter;
   }
 
+  /**
+   * Internal: Handles connection failure and logs it.
+   */
   private handleConnectionError(type: ServiceType, error: Error): void {
     this.securityAudit.logError({
       eventType: 'CONNECTION_FAILED',
       severity: 'HIGH',
-      context: { 
-        service: type,
-        endpoint: this.apiEndpoints?.[type],
-        status: (error as any)?.statusCode || 500
+      context: {
+        service: type
       },
       error
     });
-    
-    this.errorHandler.handleError({
-      error,
-      service: type,
-      category: 'CONNECTION'
+
+    this.errorHandler.handleError(error, {
+      category: 'CONNECTION',
+      service: type
     });
   }
 
-  async disconnectAll(): Promise<void> {
-    const results = await Promise.allSettled(
-      Array.from(this.activeConnections).map(async ([type, connection]) => {
-        try {
-          const adapter = this.adapters.get(type);
-          if (adapter) {
-            await adapter.terminate(connection);
-            this.securityAudit.log({
-              eventType: 'CONNECTION_CLOSED',
-              severity: 'LOW',
-              context: { service: type }
-            });
-          }
-        } catch (error) {
-          this.errorHandler.handleError({
-            error: error as Error,
-            service: type,
-            category: 'DISCONNECT'
-          });
-        }
-      })
-    );
-
-    this.handleDisconnectResults(results);
-    this.activeConnections.clear();
-  }
-
+  /**
+   * Internal: Processes results after disconnection attempts.
+   */
   private handleDisconnectResults(results: PromiseSettledResult<void>[]): void {
     const errors = results.filter(r => r.status === 'rejected');
     if (errors.length > 0) {
       this.securityAudit.log({
         eventType: 'DISCONNECT_WARNINGS',
         severity: 'MEDIUM',
-        context: { failedDisconnects: errors.length }
+        context: { failedDisconnects: errors.length },
+        category: 'SYSTEM'
       });
     }
   }

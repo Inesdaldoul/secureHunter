@@ -42,7 +42,8 @@ export class ThemeService {
       context: { 
         previous: this.currentTheme.value, 
         new: themeName 
-      }
+      },
+      category: 'USER'
     });
   }
 

@@ -3,22 +3,25 @@ import { DashboardConfig, LayoutType, WidgetConfig, ThreatCriticality } from '..
 import { FeatureToggleService } from '../config/feature-toggles';
 import { SecurityAuditService } from '../services/security-audit.service';
 import { UniversalConnector, ServiceType } from '../connectors/universal-connector.service';
-import { MLPredictorService } from '../shared/services/ml-predictor.service';
+import { MlPredictorService } from '../services/ml-predictor.service';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardFactory {
   private readonly DASHBOARD_TEMPLATES = {
     [ServiceType.VI]: this.createVIDashboard.bind(this),
-    [ServiceType.CTI]: this.createCTIDashboard.bind(this),
-    [ServiceType.ASM]: this.createASMDashboard.bind(this),
-    [ServiceType.SOAR]: this.createSOARDashboard.bind(this)
+    [ServiceType.CTI]: this.createVIDashboard.bind(this),
+    [ServiceType.ASM]: this.createVIDashboard.bind(this),
+    [ServiceType.SOAR]: this.createVIDashboard.bind(this)
   };
+  getBaseSecurityContext: any;
+  isWidgetAllowed: any;
+  adaptWidgetToThreatLevel: any;
 
   constructor(
     private featureToggle: FeatureToggleService,
     private auditService: SecurityAuditService,
     private connector: UniversalConnector,
-    private mlPredictor: MLPredictorService
+    private mlPredictor: MlPredictorService
   ) {}
 
   async createDynamicDashboard(
@@ -53,7 +56,14 @@ export class DashboardFactory {
       },
       widgets: this.generateWidgets(dataSources, 'VI'),
       security: this.getBaseSecurityContext(),
-      analytics: { /* ... */ },
+      analytics: {
+        avgInteractionTime: 0,
+        mostAccessedWidgets: [],
+        performanceMetrics: {
+          loadTime: 0,
+          renderTime: 0
+        }
+      },
       stateManagement: { undoRedoStackSize: 20, autoSaveInterval: 30000 }
     };
   }
