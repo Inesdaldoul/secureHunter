@@ -5,12 +5,12 @@
   <title>SecurehunterTemp</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <security-audit.service.ts http-equiv="Content-Security-Policy" 
-      content="default-src 'self';
-               connect-src 'self' <%= environment.apiBaseUrl %>;
-               script-src 'self' 'unsafe-inline';
-               style-src 'self' 'unsafe-inline';
-               img-src 'self' data:;">
+  <meta http-equiv="Content-Security-Policy"
+  content="default-src 'self';
+           connect-src 'self';
+           script-src 'self' 'unsafe-inline';
+           style-src 'self' 'unsafe-inline';
+           img-src 'self' data:;">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>

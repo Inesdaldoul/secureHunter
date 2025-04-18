@@ -47,7 +47,8 @@ export class AsmAdapter implements AbstractAdapter {
         context: {
           endpoint: config.baseUrl,
           authType: config.authType
-        }
+        },
+        category: 'SYSTEM'
       });
 
       const response = await lastValueFrom(
@@ -72,7 +73,8 @@ export class AsmAdapter implements AbstractAdapter {
       this.securityAudit.log({
         eventType: `${this.SERVICE_TYPE}_CONNECTION_SUCCESS`,
         severity: 'LOW',
-        context: {}
+        context: {},
+        category: 'SYSTEM'
       });
 
       return this.session;
@@ -99,7 +101,8 @@ export class AsmAdapter implements AbstractAdapter {
       this.securityAudit.log({
         eventType: `${this.SERVICE_TYPE}_CONNECTION_CLOSED`,
         severity: 'LOW',
-        context: {}
+        context: {},
+        category: 'SYSTEM'
       });
 
     } catch (error) {
@@ -139,7 +142,8 @@ export class AsmAdapter implements AbstractAdapter {
         context: {
           missingFields: missing,
           authType: config.authType
-        }
+        },
+        category: 'SYSTEM'
       });
 
       throw error;
