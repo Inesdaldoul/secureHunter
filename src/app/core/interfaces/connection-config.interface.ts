@@ -1,10 +1,11 @@
+// src/app/core/interfaces/connection-config.interface.ts
 export interface ConnectionConfig {
-    baseUrl: string;
-    authType: 'oauth2' | 'apiKey';
-    credentials: {
-      accountId: string;
-      clientId?: string;
-      clientSecret?: string;
-      apiKey?: string;
-    };
-  }
+  baseUrl: string;
+  credentials: {
+    accountId: string;
+    apiKey: string;
+    clientId?: string;
+    clientSecret?: string;
+  };
+  authType: 'apiKey' | 'oauth' | 'jwt';
+}

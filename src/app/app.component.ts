@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  standalone: true, // ← Needed for standalone setup
+  standalone: true,
   imports: [
     CommonModule,
     RouterOutlet,
@@ -32,7 +32,10 @@ export class AppComponent implements OnInit {
   private readonly baseConnectionConfig: ConnectionConfig = {
     baseUrl: 'https://api.securehunter.com/v1',
     credentials: {
-      apiKey: 'YOUR_DEFAULT_API_KEY'
+      accountId: 'YOUR_ACCOUNT_ID', // Added required accountId
+      apiKey: 'YOUR_DEFAULT_API_KEY',
+      clientId: 'YOUR_CLIENT_ID', // Optional
+      clientSecret: 'YOUR_CLIENT_SECRET' // Optional
     },
     authType: 'apiKey'
   };

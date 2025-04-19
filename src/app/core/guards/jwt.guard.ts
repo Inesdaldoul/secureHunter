@@ -7,8 +7,8 @@ import {
 } from '@angular/router';
 import { Observable, of, from } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
-import { SecurityAuditService } from '../services/security-audit.service';
-import { UniversalConnector } from '../connectors/universal-connector.service';
+import { SecurityAuditService, AuditEvent } from '../services/security-audit.service';
+import { UniversalConnector, SessionValidationResult } from '../connectors/universal-connector.service';
 import { ErrorHandlerService } from '../services/error-handler.service';
 
 @Injectable({ providedIn: 'root' })
@@ -32,7 +32,7 @@ export class JwtGuard implements CanActivate {
         }
         return of(true);
       }),
-      catchError(error => {
+      catchError((error: Error) => {
         this.errorHandler.handleError(error);
         this.router.navigate(['/critical-error']);
         return of(false);
@@ -41,11 +41,14 @@ export class JwtGuard implements CanActivate {
   }
 
   private validateToken(): Observable<boolean> {
-    return from(this.connector.validateCurrentSession().then(validation => {
+    return from(this.connector.validateCurrentSession().then((validation: SessionValidationResult) => {
       this.auditService.logSecurityEvent({
-        type: 'SESSION_VALIDATION',
+        eventType: 'SESSION_VALIDATION',
         severity: 'MEDIUM',
-        details: { result: validation.status }
+        context: { 
+          isValid: validation.isValid,
+          expiration: validation.expiration
+        }
       });
       
       return validation.isValid && 
@@ -59,25 +62,22 @@ export class JwtGuard implements CanActivate {
   }
 
   private checkTokenIntegrity(token: string): boolean {
-    try {
-      const [header, payload, signature] = token.split('.');
-      return !!header && !!payload && !!signature;
-    } catch (e) {
-      return false;
-    }
+    const tokenParts = token.split('.');
+    return tokenParts.length === 3 && 
+           tokenParts.every(part => part.length > 0);
   }
 
   private handleInvalidToken(attemptedUrl: string): void {
-    this.auditService.logSecurityIncident({
-      type: 'INVALID_SESSION_ATTEMPT',
+    this.auditService.logSecurityEvent({
+      eventType: 'INVALID_SESSION_ATTEMPT',
       severity: 'HIGH',
-      details: {
+      context: {
         attemptedUrl,
         clientInfo: this.auditService.getClientMetadata()
       }
     });
     
-    this.connector.disconnectAll();
+    this.connector.clearSession();
     this.router.navigate(['/auth/login'], {
       queryParams: { returnUrl: attemptedUrl }
     });

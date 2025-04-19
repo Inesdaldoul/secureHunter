@@ -28,7 +28,7 @@ export class UniversalConnector {
     @Optional() @Inject('API_ENDPOINTS') private apiEndpoints?: Record<ServiceType, string>
   ) {}
 
-  /**
+  /**universal-connector.service.ts
    * Placeholder for token refresh logic.
    */
   refreshAuthToken(): void {

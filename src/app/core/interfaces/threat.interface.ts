@@ -1,42 +1,58 @@
-export enum ThreatCriticality {
-  CRITICAL = 'critical', // Impact opérationnel immédiat
-  HIGH_RISK = 'high-risk', // Impact financier > 1M$
-  MEDIUM_RISK = 'medium-risk', // Impact réputationnel
-  LOW_RISK = 'low-risk' // Vulnérabilité technique
+// src/app/core/interfaces/threat.interface.ts
+
+// Define missing interfaces
+export interface TemporalEntity {
+  timestamp: Date;
+  duration?: number;
+  startTime?: Date;
+  endTime?: Date;
+  isActive: boolean;
 }
 
-export interface ThreatIndicator {
-  stixPattern?: string; // Format STIX 2.1
-  mitreTactic: string;
-  mitreTechnique: string;
-  confidenceLevel: number; // 0-100
-  detectionCoverage: number; // Pourcentage de couverture
+export interface Geolocatable {
+  location: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+  };
+  region?: string;
+  country?: string;
+  city?: string;
+  ip?: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  action: string;
+  performedBy: string;
+  timestamp: Date;
+  details?: Record<string, any>;
+  severity: 'low' | 'medium' | 'high' | 'critical';
 }
 
 export interface ThreatContext {
-  attackPathAnalysis: string[];
-  potentialImpact: {
-    financial?: number;
-    reputation?: number;
-    operational?: number;
-  };
-  thirdPartyRisk: {
-    vendorId: string;
-    slaImpact: boolean;
-  }[];
+  // Add the threat context properties here
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  confidence: number;
+  source: string;
+  relatedThreats?: string[];
+  tags?: string[];
+  description?: string;
 }
 
 export interface Threat extends TemporalEntity, Geolocatable {
   id: string;
   type: string;
-  criticality: ThreatCriticality;
-  indicators: ThreatIndicator[];
-  context: ThreatContext;
-  lifecycle: {
-    detection: Date;
-    containment: Date;
-    eradication: Date;
-    recovery: Date;
-  };
-  chainOfCustody: AuditEntry[]; // Historique des modifications
+  name: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: 'active' | 'mitigated' | 'resolved' | 'false_positive';
+  source: string;
+  targetAssets: string[];
+  context?: ThreatContext;
+  audit: AuditEntry[];
+  createdAt: Date;
+  updatedAt: Date;
+  mitigationPlan?: string;
+  assignedTo?: string;
 }
