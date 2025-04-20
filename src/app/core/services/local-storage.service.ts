@@ -1,11 +1,13 @@
-// src/app/core/services/local-storage.service.ts
+// src/app/core/services/local-storage.service.ts (if not created yet)
 import { Injectable } from '@angular/core';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class LocalStorageService {
-  get<T>(key: string): T | null {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
+  async get<T>(key: string): Promise<T | null> {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
   }
 
   async set(key: string, value: any): Promise<void> {

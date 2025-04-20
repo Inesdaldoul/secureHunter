@@ -1,48 +1,66 @@
 // src/app/core/layout/security-footer/security-footer.component.ts
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-security-footer',
-  standalone: true,
-  imports: [CommonModule],
   template: `
     <footer class="security-footer">
-      <div class="copyright">
-        &copy; 2025 SecureHunter. All rights reserved.
-      </div>
-      <div class="links">
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
-        <a href="/contact">Contact</a>
+      <div class="footer-content">
+        <div class="copyright">
+          © {{currentYear}} SecureHunter. All rights reserved.
+        </div>
+        <div class="links">
+          <a href="/terms">Terms of Service</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/contact">Contact</a>
+        </div>
+        <div class="version">
+          Version 1.0.0
+        </div>
       </div>
     </footer>
   `,
   styles: [`
     .security-footer {
+      background-color: #1a1a2e;
+      color: #e6e6e6;
+      padding: 1rem;
+      margin-top: auto;
+    }
+    
+    .footer-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem;
-      background-color: #1a1a1a;
-      color: #a0a0a0;
-      font-size: 0.9rem;
+      max-width: 1200px;
+      margin: 0 auto;
     }
     
     .links {
       display: flex;
-      gap: 1rem;
+      gap: 1.5rem;
     }
     
     .links a {
-      color: #a0a0a0;
+      color: #e6e6e6;
       text-decoration: none;
-      transition: color 0.2s;
+      transition: color 0.3s;
     }
     
     .links a:hover {
-      color: white;
+      color: #4cc9f0;
+    }
+    
+    .version {
+      color: #888;
+      font-size: 0.8rem;
     }
   `]
 })
-export class SecurityFooterComponent {}
+export class SecurityFooterComponent implements OnInit {
+  currentYear = new Date().getFullYear();
+  
+  constructor() {}
+  
+  ngOnInit(): void {}
+}

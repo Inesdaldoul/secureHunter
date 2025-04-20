@@ -1,83 +1,27 @@
 // src/app/app.module.ts
-import { NgModule, SecurityContext } from '@angular/core';
-import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
-
-import { SecurityInterceptor } from './core/services/security-interceptor';
-import { ThemeService } from './core/services/theme.service';
-import { JwtGuard } from './core/guards/jwt.guard';
-import { RoleGuard } from './core/guards/role.guard';
-import { FeatureToggleService } from './core/config/feature-toggles';
-import { SecurityAuditService } from './core/services/security-audit.service';
-import { MlPredictorService } from './core/services/ml-predictor.service';
-
-import { SESSION_CONFIG } from './core/config/audit-config';
-import { environment } from '../environments/environment';
-
-// Use bootstrapApplication approach for standalone components
-import { bootstrapApplication } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
-import { provideRouter } from '@angular/router';
+import { AppRoutingModule } from './app-routing.module';
+import { environment } from '../environments/environment';
+import { DynamicSidebarComponent } from './core/layout/dynamic-sidebar/dynamic-sidebar.component';
+import { DashboardComponent } from './features/dashboard/dashboard.component';
 
-bootstrapApplication(AppComponent, {
-  providers: [
-    { provide: SESSION_CONFIG, useValue: { bufferSize: 25 } },
-    ThemeService,
-    FeatureToggleService,
-    SecurityAuditService,
-    MlPredictorService,
-    { provide: HTTP_INTERCEPTORS, useClass: SecurityInterceptor, multi: true },
-    JwtGuard,
-    RoleGuard,
-    {
-      provide: DomSanitizer,
-      useValue: { sanitize: (ctx: SecurityContext, value: string) => value }
-    },
-    provideRouter([]),
-    importProvidersFrom(
-      BrowserModule,
-      BrowserAnimationsModule,
-      HttpClientModule,
-      MatIconModule,
-      MatButtonModule
-    )
-  ]
-});
-
-// Keep an empty NgModule for any non-standalone components if needed
 @NgModule({
-  declarations: [],
+  declarations: [
+    AppComponent,
+    DynamicSidebarComponent,
+    DashboardComponent
+  ],
   imports: [
     BrowserModule,
-    CommonModule,
     HttpClientModule,
-    BrowserAnimationsModule,
-    MatIconModule,
-    MatButtonModule,
-    RouterModule.forRoot([], {
-      enableTracing: environment.enableDebugTools,
-      scrollPositionRestoration: 'enabled',
-      anchorScrolling: 'enabled'
-    })
+    AppRoutingModule
   ],
   providers: [
-    { provide: SESSION_CONFIG, useValue: { bufferSize: 25 } },
-    ThemeService,
-    FeatureToggleService,
-    SecurityAuditService,
-    MlPredictorService,
-    { provide: HTTP_INTERCEPTORS, useClass: SecurityInterceptor, multi: true },
-    JwtGuard,
-    RoleGuard,
-    {
-      provide: DomSanitizer,
-      useValue: { sanitize: (ctx: SecurityContext, value: string) => value }
-    }
-  ]
+    { provide: 'API_ENDPOINTS', useValue: environment.apiEndpoints }
+  ],
+  bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

@@ -1,6 +1,11 @@
+// src/app/core/services/auth.service.ts (if not created yet)
 import { Injectable } from '@angular/core';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthService {
-  currentSessionId: string | null = null;
+  get currentSessionId(): string {
+    return localStorage.getItem('session_id') || '';
+  }
 }

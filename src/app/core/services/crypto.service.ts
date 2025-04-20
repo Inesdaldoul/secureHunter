@@ -1,17 +1,23 @@
+// src/app/core/services/crypto.service.ts (if not created yet)
 import { Injectable } from '@angular/core';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class CryptoService {
   async encrypt(data: string, key: string): Promise<string> {
-    // TODO: chiffrement (AES, etc.)
-    return data;
+    // Simple implementation for development
+    // In production, use a real encryption library
+    return btoa(data);
   }
+
   async decrypt(data: string, key: string): Promise<string> {
-    // TODO: déchiffrement
-    return data;
+    // Simple implementation for development
+    return atob(data);
   }
+
   hash(data: string): string {
-    // TODO: fonction de hachage (SHA-256, etc.)
-    return data;
+    // Simple implementation - in production use a real hashing algorithm
+    return btoa(data).substring(0, 16);
   }
 }

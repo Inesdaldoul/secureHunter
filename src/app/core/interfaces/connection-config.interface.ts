@@ -7,5 +7,10 @@ export interface ConnectionConfig {
     clientId?: string;
     clientSecret?: string;
   };
-  authType: 'apiKey' | 'oauth' | 'jwt';
+  authType: 'apiKey' | 'oauth' | 'basic';
+  timeout?: number;
+  retryPolicy?: {
+    maxRetries: number;
+    delayMs: number;
+  };
 }

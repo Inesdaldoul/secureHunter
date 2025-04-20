@@ -1,23 +1,16 @@
-// src/app/core/services/network.service.ts
+// src/app/core/services/network.service.ts (if not created yet)
 import { Injectable } from '@angular/core';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class NetworkService {
-  getClientIp(): string | PromiseLike<string> {
-    throw new Error('Method not implemented.');
-  }
-  private onlineStatus = navigator.onLine;
-
-  constructor() {
-    window.addEventListener('online', () => this.updateOnlineStatus());
-    window.addEventListener('offline', () => this.updateOnlineStatus());
-  }
-
   get isOnline(): boolean {
-    return this.onlineStatus;
+    return navigator.onLine;
   }
 
-  private updateOnlineStatus(): void {
-    this.onlineStatus = navigator.onLine;
+  async getClientIp(): Promise<string> {
+    // In a real implementation, this would be provided by a backend service
+    return '127.0.0.1';
   }
 }
