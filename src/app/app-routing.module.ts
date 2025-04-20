@@ -1,14 +1,20 @@
 // src/app/app-routing.module.ts
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { DynamicSidebarComponent } from './core/components/dynamic-sidebar/dynamic-sidebar.component';
+
+// ✅ Correct imports based on updated file locations
+import { DynamicSidebarComponent } from './core/layout/dynamic-sidebar/dynamic-sidebar.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { ThreatIntelligenceComponent } from './features/cti/threat-intelligence.component';
-import { VulnerabilityManagementComponent } from './features/vi/vulnerability-management.component';
-import { AssetSecurityComponent } from './features/asm/asset-security.component';
-import { SoarOperationsComponent } from './features/soar/soar-operations.component';
+import { ThreatIntelligenceComponent } from './features/cti/threat-intelligence/threat-intelligence.component';
+import { VulnerabilityManagementComponent } from './features/vi/vulnerability-management/vulnerability-management.component';
+import { AssetSecurityComponent } from './features/asm/asset-security/asset-security.component';
+import { SoarOperationsComponent } from './features/soar/soar-operations/soar-operations.component';
+
 import { AuthGuard } from './core/guards/auth.guard';
 import { SessionGuard } from './core/guards/session.guard';
+
+// ✅ If you're missing the environment.ts, temporarily replace with false or create the file
+import { environment } from '../environments/environment';
 
 const routes: Routes = [
   {
@@ -60,8 +66,8 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
-    enableTracing: false, // Set to true for debugging routes
-    useHash: environment.production // Hash-based routing for production
+    enableTracing: false,
+    useHash: environment.production // If you don't have `environment.ts`, set it manually for now
   })],
   exports: [RouterModule]
 })

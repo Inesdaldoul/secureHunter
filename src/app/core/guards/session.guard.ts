@@ -16,8 +16,8 @@ export class SessionGuard implements CanActivate {
 
   async canActivate(): Promise<boolean> {
     try {
-      const session = await this.connector.validateCurrentSession();
-      if (!session.isValid) {
+      const sessionIsValid = await this.connector.validateCurrentSession();
+      if (!sessionIsValid) {
         this.handleInvalidSession();
         return false;
       }

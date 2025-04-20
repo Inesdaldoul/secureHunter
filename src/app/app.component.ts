@@ -5,9 +5,13 @@ import { UniversalConnector, ServiceType } from './core/connectors/universal-con
 import { ConnectionConfig } from './core/interfaces/connection-config.interface';
 import { SecurityHeaderComponent } from './core/layout/security-header/security-header.component';
 import { SecurityFooterComponent } from './core/layout/security-footer/security-footer.component';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-root',
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterModule, SecurityHeaderComponent, SecurityFooterComponent],
   // Remove the imports property - since this component is not standalone
   template: `
     <div class="app-container">

@@ -101,4 +101,9 @@ export class UniversalConnector {
     });
     return connections;
   }
+  async validateCurrentSession(): Promise<boolean> {
+    // Example logic — customize as needed
+    const token = localStorage.getItem('authToken');
+    return !!token; // true if token exists
+  }
 }

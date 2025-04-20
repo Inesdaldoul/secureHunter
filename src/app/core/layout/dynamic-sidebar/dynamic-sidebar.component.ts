@@ -1,4 +1,3 @@
-// src/app/core/components/dynamic-sidebar/dynamic-sidebar.component.ts
 import { Component } from '@angular/core';
 
 @Component({

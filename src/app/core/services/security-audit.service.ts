@@ -6,7 +6,7 @@ import { AuthService } from './auth.service';
 import { CryptoService } from './crypto.service';
 import { DeviceService } from './device.service';
 import { environment } from '../../../environments/environment';
-
+import { UserRole } from './../models/user-role.model';
 // Updated AuditEvent interface
 export interface AuditEvent {
   eventType: string;
@@ -22,8 +22,7 @@ export interface AuditEvent {
 export class SecurityAuditService {
   private eventBuffer: AuditEvent[] = [];
   private readonly BUFFER_SIZE = 20;
-  private readonly MAX_RETRIES = 3;
-  private retryCount = 0;
+  getCurrentUserRole: any;
   
   constructor(
     private storage: LocalStorageService,
@@ -112,12 +111,6 @@ export class SecurityAuditService {
     };
   }
   
-  private async logEvent(event: AuditEvent): Promise<void> {
-    this.eventBuffer.push(event);
-    if (this.eventBuffer.length >= this.BUFFER_SIZE) {
-      await this.flushLogs();
-    }
-  }
   
   private async flushLogs(): Promise<void> {
     // Implement your log flushing logic here
@@ -138,15 +131,4 @@ export class SecurityAuditService {
     }
   }
   
-  private sanitizeError(error: Error) {
-    return {
-      name: error.name,
-      message: error.message.replace(/password=['"][^'"]+['"]/gi, 'password=***'),
-      stack: error.stack?.split('\n').map(line =>
-        line.replace(/(at .* \()(.*)(:.*:.*\)/, (_, pre, path, post) =>
-          `${pre}${path.split('/').pop()}${post}`
-        )
-      )
-    };
-  }
 }
