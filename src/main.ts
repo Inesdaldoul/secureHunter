@@ -2,6 +2,8 @@
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { AppModule } from './app/app.module';
 import { bootstrapApplication } from '@angular/platform-browser';
+import { provideHttpClient} from '@angular/common/http';
+import {provideRouter} from '@angular/router';
 import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 import { enableProdMode } from '@angular/core';
@@ -12,5 +14,10 @@ if (environment.production) {
   enableProdMode();
 }
 
-bootstrapApplication(AppComponent)
-  .catch(err => console.error('Application bootstrap error:', err));
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideHttpClient(),
+    provideRouter([/* your routes */])
+    // Other providers
+  ]
+})

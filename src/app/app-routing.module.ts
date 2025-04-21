@@ -1,6 +1,7 @@
 // src/app/app-routing.module.ts
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import {TermsComponent } from './features/terms/terms.component';
 
 // ✅ Correct imports based on updated file locations
 import { DynamicSidebarComponent } from './core/layout/dynamic-sidebar/dynamic-sidebar.component';
@@ -58,6 +59,7 @@ const routes: Routes = [
     canActivate: [AuthGuard, SessionGuard],
     data: { serviceType: 'soar' }
   },
+  { path: 'terms', component: TermsComponent },
   {
     path: '**',
     redirectTo: 'dashboard'

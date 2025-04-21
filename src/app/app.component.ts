@@ -9,7 +9,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 @Component({
   selector: 'app-root',
-  
+  standalone: true,
   imports: [RouterModule, SecurityHeaderComponent, SecurityFooterComponent, HttpClientModule],
   // Remove the imports property - since this component is not standalone
   template: `
