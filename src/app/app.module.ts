@@ -11,6 +11,7 @@ import { DynamicSidebarComponent } from './core/layout/dynamic-sidebar/dynamic-s
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 
 @NgModule({
+
   // ❌ No declarations for standalone components
   imports: [
     BrowserModule,
@@ -23,6 +24,6 @@ import { DashboardComponent } from './features/dashboard/dashboard.component';
   providers: [
     { provide: 'API_ENDPOINTS', useValue: environment.apiEndpoints }
   ],
-  bootstrap: [AppComponent]
+  
 })
 export class AppModule {}

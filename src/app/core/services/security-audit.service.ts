@@ -85,11 +85,11 @@ export class SecurityAuditService {
     }
     
     // Example implementation - fixed string comparison
-    const requiredRole = criteria.role;
-    const currentUserRole = this.auth.currentSessionId ? 'AUTHENTICATED' : 'GUEST';
+    const requiredRole: UserRole = criteria.role;
+    const currentUserRole: UserRole = this.auth.currentSessionId ? 'AUTHENTICATED' : 'GUEST'  ;
     
     // Fix the string comparison issue
-    if (requiredRole === 'ADMIN' && currentUserRole !== 'ADMIN') {
+    if (requiredRole === 'AUTHENTICATED' && currentUserRole !== 'AUTHENTICATED') {
       return false;
     }
     
