@@ -6,6 +6,7 @@ export interface ConnectionConfig {
     apiKey: string;
     clientId?: string;
     clientSecret?: string;
+    [key: string]: string | undefined;
   };
   authType: 'apiKey' | 'oauth' | 'basic';
   timeout?: number;

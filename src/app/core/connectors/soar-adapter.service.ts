@@ -5,13 +5,32 @@ import { ConnectionConfig } from '../interfaces/connection-config.interface';
 import { ErrorHandlerService } from '../services/error-handler.service';
 import { SecurityAuditService } from '../services/security-audit.service';
 import { timeout, retry } from 'rxjs/operators';
+import { lastValueFrom } from 'rxjs';
+import { AuditEvent } from './universal-connector-types';
+
+interface SoarSession {
+  sessionToken: string;
+  sessionId: string;
+  baseUrl: string;
+  endpoints: {
+    incidents: string;
+    workflows: string;
+  };
+  expiration: number;
+}
+
+interface SoarAuthResponse {
+  session_token: string;
+  session_id: string;
+  expires_in: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class SoarAdapter implements AbstractAdapter {
   private readonly SERVICE_TYPE = 'soar';
   private readonly TIMEOUT = 30000;
   private readonly MAX_RETRIES = 4;
-  private session: any;
+  private session: SoarSession | null = null;
 
   constructor(
     private http: HttpClient,
@@ -19,48 +38,76 @@ export class SoarAdapter implements AbstractAdapter {
     private securityAudit: SecurityAuditService
   ) {}
 
-  async initialize(config: ConnectionConfig): Promise<any> {
+  async initialize(config: ConnectionConfig): Promise<SoarSession> {
     try {
       this.validateConfig(config);
-      
-      this.securityAudit.log(`${this.SERVICE_TYPE}_CONNECTION_START`, {
-        endpoint: config.baseUrl,
-        authType: config.authType
+
+      // Log connection start
+      this.securityAudit.log({
+        eventType: `${this.SERVICE_TYPE}_CONNECTION_START`,
+        severity: 'MEDIUM',
+        category: 'SYSTEM',
+        context: {
+          endpoint: config.baseUrl,
+          authType: config.authType
+        }
       });
 
-      const response = await this.http.post<any>(
-        `${config.baseUrl}/api/v1/auth`,
-        this.buildAuthBody(config),
-        { headers: this.getAuthHeaders(config) }
-      )
-      .pipe(
-        timeout(this.TIMEOUT),
-        retry(this.MAX_RETRIES)
-      )
-      .toPromise();
+      // Make the authentication request
+      const response = await lastValueFrom(
+        this.http.post<SoarAuthResponse>(
+          `${config.baseUrl}/api/v1/auth`,
+          this.buildAuthBody(config),
+          { headers: this.getAuthHeaders(config) }
+        ).pipe(
+          timeout(this.TIMEOUT),
+          retry(this.MAX_RETRIES)
+        )
+      );
 
+      // Normalize and store session
       this.session = this.normalizeSession(config, response);
-      this.securityAudit.log(`${this.SERVICE_TYPE}_CONNECTION_SUCCESS`);
-      
+
+      // Log connection success
+      this.securityAudit.log({
+        eventType: `${this.SERVICE_TYPE}_CONNECTION_SUCCESS`,
+        severity: 'LOW',
+        category: 'SYSTEM',
+        context: {}
+      });
+
       return this.session;
 
     } catch (error) {
+      // Handle error
       this.handleError(error, config.baseUrl);
       throw error;
     }
   }
 
-  async terminate(connection: any): Promise<void> {
+  async terminate(connection: SoarSession): Promise<void> {
     try {
-      await this.http.post(
-        `${connection.baseUrl}/api/v1/auth/logout`,
-        {},
-        { headers: this.getSessionHeaders(connection) }
-      ).toPromise();
-      
-      this.securityAudit.log(`${this.SERVICE_TYPE}_CONNECTION_CLOSED`);
+      // Attempt to log out
+      await lastValueFrom(
+        this.http.post(
+          `${connection.baseUrl}/api/v1/auth/logout`,
+          {},
+          { headers: this.getSessionHeaders(connection) }
+        )
+      );
+
+      // Log connection closed
+      this.securityAudit.log({
+        eventType: `${this.SERVICE_TYPE}_CONNECTION_CLOSED`,
+        severity: 'LOW',
+        category: 'SYSTEM',
+        context: {}
+      });
+
     } catch (error) {
-      this.errorHandler.handleError(error, {
+      // Log error during termination
+      this.errorHandler.handleError({
+        error,
         service: this.SERVICE_TYPE,
         category: 'TERMINATION'
       });
@@ -70,18 +117,26 @@ export class SoarAdapter implements AbstractAdapter {
   validateConfig(config: ConnectionConfig): boolean {
     const requiredFields = ['username', 'apiKey'];
     const missing = requiredFields.filter(f => !config.credentials?.[f]);
-    
+
     if (missing.length > 0) {
-      const error = new Error(`Configuration ${this.SERVICE_TYPE} invalide : ${missing.join(', ')} manquant`);
-      this.securityAudit.log(`${this.SERVICE_TYPE}_CONFIG_ERROR`, { error: error.message });
+      const error = new Error(`Configuration ${this.SERVICE_TYPE} invalid: ${missing.join(', ')} missing`);
+
+      // Log config error
+      this.securityAudit.log({
+        eventType: `${this.SERVICE_TYPE}_CONFIG_ERROR`,
+        severity: 'HIGH',
+        category: 'SYSTEM',
+        context: { error: error.message }
+      });
+
       throw error;
     }
     return true;
   }
 
-  private buildAuthBody(config: ConnectionConfig): any {
+  private buildAuthBody(config: ConnectionConfig): Record<string, any> {
     return {
-      username: config.credentials.username,
+      username: config.credentials['username'],
       api_key: config.credentials.apiKey,
       scope: 'incidents:read workflows:execute'
     };
@@ -94,14 +149,14 @@ export class SoarAdapter implements AbstractAdapter {
     };
   }
 
-  private getSessionHeaders(connection: any): { [header: string]: string } {
+  private getSessionHeaders(connection: SoarSession): { [header: string]: string } {
     return {
       'Authorization': `Bearer ${connection.sessionToken}`,
       'X-Session-ID': connection.sessionId
     };
   }
 
-  private normalizeSession(config: ConnectionConfig, response: any): any {
+  private normalizeSession(config: ConnectionConfig, response: SoarAuthResponse): SoarSession {
     return {
       sessionToken: response.session_token,
       sessionId: response.session_id,
@@ -115,15 +170,25 @@ export class SoarAdapter implements AbstractAdapter {
   }
 
   private handleError(error: any, context: string): void {
+    // Structured error data for logging and handling
     const errorData = {
       service: this.SERVICE_TYPE,
       context,
       status: error.status || 500,
-      message: error.message
+      message: error.message || 'Unknown error'
     };
 
-    this.securityAudit.log(`${this.SERVICE_TYPE}_ERROR`, errorData);
-    this.errorHandler.handleError(error, {
+    // Log error event
+    this.securityAudit.log({
+      eventType: `${this.SERVICE_TYPE}_ERROR`,
+      severity: 'HIGH',
+      category: 'SYSTEM',
+      context: errorData
+    });
+
+    // Handle the error
+    this.errorHandler.handleError({
+      error,
       ...errorData,
       category: 'CONNECTION',
       severity: error.status === 403 ? 'CRITICAL' : 'HIGH'

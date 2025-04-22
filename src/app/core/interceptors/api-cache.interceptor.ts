@@ -6,7 +6,7 @@ import {
   HttpEvent, 
   HttpResponse 
 } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { SecurityAuditService } from '../services/security-audit.service';
 import { ErrorHandlerService } from '../services/error-handler.service';
@@ -19,6 +19,7 @@ export class ApiCacheInterceptor implements HttpInterceptor {
     metadata: any 
   }>();
   private readonly CACHE_TTL = 300000; // 5 minutes
+  handleCacheError: any;
 
   constructor(
     private auditService: SecurityAuditService,

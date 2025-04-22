@@ -6,6 +6,30 @@ import { ErrorHandlerService } from '../services/error-handler.service';
 import { SecurityAuditService } from '../services/security-audit.service';
 import { timeout, retry, map } from 'rxjs/operators';
 import { lastValueFrom } from 'rxjs';
+import { AuditEvent } from './universal-connector-types';
+
+// Create a proper interface for error handling that extends Error properly
+interface ErrorWithContext extends Error {
+  category: string;
+  service: string;
+  endpoint: string;
+  authType?: string;
+  sessionId?: string;
+}
+
+// Define the exact structure of credentials to avoid index signature issues
+interface AsmCredentials {
+  accountId: string;
+  apiKey: string;
+  clientId?: string;
+  clientSecret?: string;
+  [key: string]: string | undefined; // Add index signature for string access
+}
+
+// Update ConnectionConfig to use our credentials interface
+interface AsmConnectionConfig extends ConnectionConfig {
+  credentials: AsmCredentials;
+}
 
 interface AsmSession {
   sessionToken: string;
@@ -37,18 +61,18 @@ export class AsmAdapter implements AbstractAdapter {
     private securityAudit: SecurityAuditService
   ) {}
 
-  async initialize(config: ConnectionConfig): Promise<AsmSession> {
+  async initialize(config: AsmConnectionConfig): Promise<AsmSession> {
     try {
       this.validateConfig(config);
       
       this.securityAudit.log({
         eventType: `${this.SERVICE_TYPE}_CONNECTION_INIT`,
         severity: 'MEDIUM',
+        category: 'SYSTEM',
         context: {
           endpoint: config.baseUrl,
           authType: config.authType
-        },
-        category: 'SYSTEM'
+        }
       });
 
       const response = await lastValueFrom(
@@ -73,14 +97,14 @@ export class AsmAdapter implements AbstractAdapter {
       this.securityAudit.log({
         eventType: `${this.SERVICE_TYPE}_CONNECTION_SUCCESS`,
         severity: 'LOW',
-        context: {},
-        category: 'SYSTEM'
+        category: 'SYSTEM',
+        context: {}
       });
 
       return this.session;
 
     } catch (error) {
-      this.handleError(error as Error, config);
+      this.handleError(error instanceof Error ? error : new Error(String(error)), config);
       throw error;
     }
   }
@@ -101,8 +125,8 @@ export class AsmAdapter implements AbstractAdapter {
       this.securityAudit.log({
         eventType: `${this.SERVICE_TYPE}_CONNECTION_CLOSED`,
         severity: 'LOW',
-        context: {},
-        category: 'SYSTEM'
+        category: 'SYSTEM',
+        context: {}
       });
 
     } catch (error) {
@@ -112,25 +136,30 @@ export class AsmAdapter implements AbstractAdapter {
         sessionId: connection.sessionId
       };
       
-      this.securityAudit.logError({
+      this.securityAudit.log({
         eventType: `${this.SERVICE_TYPE}_ERROR`,
         severity: 'HIGH',
-        context: errorContext,
-        error: error as Error
+        category: 'SYSTEM',
+        context: errorContext
       });
       
-      this.errorHandler.handleError({
-        error: error as Error,
+      // Create an error object with the required properties
+      const errorWithContext = new Error(error instanceof Error ? error.message : String(error));
+      Object.assign(errorWithContext, {
         ...errorContext,
-        category: 'TERMINATION'
+        category: 'TERMINATION',
+        name: error instanceof Error ? error.name : 'Error',
+        stack: error instanceof Error ? error.stack : undefined
       });
+      
+      this.errorHandler.handleError(errorWithContext as unknown as ErrorWithContext);
     } finally {
       this.session = null;
     }
   }
 
-  validateConfig(config: ConnectionConfig): boolean {
-    const requiredFields: (keyof ConnectionConfig['credentials'])[] = ['accountId', 'apiKey'];
+  validateConfig(config: AsmConnectionConfig): boolean {
+    const requiredFields = ['accountId', 'apiKey'];
     const missing = requiredFields.filter(f => !config.credentials[f]);
     
     if (missing.length > 0) {
@@ -139,11 +168,11 @@ export class AsmAdapter implements AbstractAdapter {
       this.securityAudit.log({
         eventType: `${this.SERVICE_TYPE}_CONFIG_ERROR`,
         severity: 'HIGH',
+        category: 'SYSTEM',
         context: {
           missingFields: missing,
           authType: config.authType
-        },
-        category: 'SYSTEM'
+        }
       });
 
       throw error;
@@ -151,22 +180,22 @@ export class AsmAdapter implements AbstractAdapter {
     return true;
   }
 
-  private buildAuthPayload(config: ConnectionConfig): Record<string, string> {
+  private buildAuthPayload(config: AsmConnectionConfig): Record<string, string> {
     return {
-      account_id: config.credentials.accountId as string,
-      api_key: config.credentials.apiKey as string,
+      account_id: config.credentials.accountId,
+      api_key: config.credentials.apiKey,
       scope: 'assets:read scan:execute'
     };
   }
 
-  private getAuthHeaders(config: ConnectionConfig): HttpHeaders {
+  private getAuthHeaders(config: AsmConnectionConfig): HttpHeaders {
     return new HttpHeaders({
       'Content-Type': 'application/json',
       'X-ASM-Client': 'SecureHunter/2.0'
     });
   }
 
-  private normalizeSession(config: ConnectionConfig, response: AsmAuthResponse): AsmSession {
+  private normalizeSession(config: AsmConnectionConfig, response: AsmAuthResponse): AsmSession {
     return {
       sessionToken: response.token,
       sessionId: response.session_id,
@@ -179,24 +208,29 @@ export class AsmAdapter implements AbstractAdapter {
     };
   }
 
-  private handleError(error: Error, config: ConnectionConfig): void {
+  private handleError(error: Error, config: AsmConnectionConfig): void {
     const errorContext = {
       service: this.SERVICE_TYPE,
       endpoint: config.baseUrl,
       authType: config.authType
     };
 
-    this.securityAudit.logError({
+    this.securityAudit.log({
       eventType: `${this.SERVICE_TYPE}_ERROR`,
       severity: 'HIGH',
-      context: errorContext,
-      error
+      category: 'SYSTEM',
+      context: errorContext
     });
     
-    this.errorHandler.handleError({
-      error,
+    // Create an error object with the required properties
+    const errorWithContext = new Error(error.message);
+    Object.assign(errorWithContext, {
       ...errorContext,
-      category: 'CONNECTION'
+      category: 'CONNECTION',
+      name: error.name,
+      stack: error.stack
     });
+    
+    this.errorHandler.handleError(errorWithContext as unknown as ErrorWithContext);
   }
 }

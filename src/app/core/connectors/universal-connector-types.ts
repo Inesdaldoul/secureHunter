@@ -1,4 +1,3 @@
-// src/app/core/connectors/universal-connector-types.ts
 export enum ServiceType {
   VI = 'vi',
   CTI = 'cti',
@@ -16,7 +15,7 @@ export interface AuditEvent {
   eventType: string;
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   category: 'SYSTEM' | 'SECURITY' | 'USER';
-  context: Record<string, unknown>;
+  context: Record<string, any>;
   timestamp?: Date;
   metadata?: {
     sessionId: string;

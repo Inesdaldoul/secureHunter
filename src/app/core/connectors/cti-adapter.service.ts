@@ -5,8 +5,34 @@ import { ConnectionConfig } from '../interfaces/connection-config.interface';
 import { ErrorHandlerService } from '../services/error-handler.service';
 import { SecurityAuditService } from '../services/security-audit.service';
 import { timeout, retry } from 'rxjs/operators';
-import { AuthResponse } from '../interfaces/auth-response.interface';
-import { ConnectionObject } from '../interfaces/connection-object.interface';
+import { lastValueFrom } from 'rxjs';
+import { AuditEvent } from './universal-connector-types';
+
+interface AuthResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+export interface ConnectionObject {
+  accessToken: string;
+  refreshToken: string;
+  baseUrl: string;
+  expiration: number;
+  endpoints: {
+    indicators: string;
+    threats: string;
+  };
+}
+
+type AuditLogSeverity = 'LOW' | 'MEDIUM' | 'HIGH';
+
+interface ErrorDetails {
+  error: unknown;
+  service: string;
+  category: string;
+  endpoint?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CtiAdapter implements AbstractAdapter {
@@ -25,62 +51,76 @@ export class CtiAdapter implements AbstractAdapter {
   async initialize(config: ConnectionConfig): Promise<ConnectionObject> {
     try {
       this.validateConfig(config);
-      
+
       this.securityAudit.log({
         eventType: `${this.SERVICE_TYPE}_CONNECTION_ATTEMPT`,
+        severity: 'MEDIUM',
+        category: 'SYSTEM',
         context: {
           endpoint: config.baseUrl,
           authType: config.authType
         }
       });
 
-      const response = await this.http.post<AuthResponse>(
-        `${config.baseUrl}/v3/auth/token`,
-        this.buildAuthPayload(config),
-        { headers: this.getCTIHeaders(config) }
-      )
-      .pipe(
-        timeout(this.TIMEOUT),
-        retry(this.MAX_RETRIES)
-      )
-      .toPromise();
+      const response = await lastValueFrom(
+        this.http.post<AuthResponse>(
+          `${config.baseUrl}/v3/auth/token`,
+          this.buildAuthPayload(config),
+          { headers: this.getCTIHeaders(config) }
+        ).pipe(
+          timeout(this.TIMEOUT),
+          retry(this.MAX_RETRIES)
+        )
+      );
 
       this.connection = this.buildConnectionObject(config, response);
       this.startTokenRefresh(response.expires_in);
-      
+
       this.securityAudit.log({
-        eventType: `${this.SERVICE_TYPE}_CONNECTION_SUCCESS`
+        eventType: `${this.SERVICE_TYPE}_CONNECTION_SUCCESS`,
+        severity: 'LOW',
+        category: 'SYSTEM',
+        context: {}
       });
-      
+
       return this.connection;
 
     } catch (error) {
-      this.errorHandler.handleError({
+      const errorDetails: ErrorDetails = {
         error,
         service: this.SERVICE_TYPE,
         category: 'INITIALIZATION',
         endpoint: config.baseUrl
-      });
+      };
+      this.errorHandler.handleError(
+        error instanceof Error ? error : new Error(JSON.stringify(error))
+      );
       throw error;
     }
   }
 
   async terminate(connection: ConnectionObject): Promise<void> {
     try {
-      await this.http.delete(
-        `${connection.baseUrl}/v3/auth/token`,
-        { headers: this.getAuthHeaders(connection.accessToken) }
-      ).toPromise();
-      
+      await lastValueFrom(
+        this.http.delete(
+          `${connection.baseUrl}/v3/auth/token`,
+          { headers: this.getAuthHeaders(connection.accessToken) }
+        )
+      );
+
       this.securityAudit.log({
-        eventType: `${this.SERVICE_TYPE}_CONNECTION_CLOSED`
+        eventType: `${this.SERVICE_TYPE}_CONNECTION_CLOSED`,
+        severity: 'LOW',
+        category: 'SYSTEM',
+        context: {}
       });
     } catch (error) {
-      this.errorHandler.handleError({
+      const errorDetails: ErrorDetails = {
         error,
         service: this.SERVICE_TYPE,
         category: 'TERMINATION'
-      });
+      };
+      this.errorHandler.handleError(errorDetails); // ✅ Accepts ErrorDetails
     } finally {
       clearTimeout(this.tokenRefreshTimer);
       this.connection = undefined;
@@ -88,16 +128,22 @@ export class CtiAdapter implements AbstractAdapter {
   }
 
   validateConfig(config: ConnectionConfig): boolean {
-    const requiredFields: (keyof ConnectionConfig['credentials'])[] = ['clientId', 'clientSecret'];
-    const missing = requiredFields.filter(f => !config.credentials?.[f]);
-    
+    if (!config.credentials) {
+      throw new Error('No credentials provided');
+    }
+
+    const requiredFields = ['clientId', 'clientSecret'];
+    const missing = requiredFields.filter(f => !(config.credentials as any)[f]);
+
     if (missing.length > 0) {
-      const error = new Error(`Champs CTI manquants : ${missing.join(', ')}`);
+      const errorMessage = `Champs CTI manquants : ${missing.join(', ')}`;
       this.securityAudit.log({
         eventType: `${this.SERVICE_TYPE}_CONFIG_ERROR`,
-        context: { error: error.message }
+        severity: 'HIGH',
+        category: 'SYSTEM',
+        context: { errorMessage }
       });
-      throw error;
+      throw new Error(errorMessage);
     }
     return true;
   }
@@ -105,8 +151,8 @@ export class CtiAdapter implements AbstractAdapter {
   private buildAuthPayload(config: ConnectionConfig): { grant_type: string; client_id: string; client_secret: string; scope: string } {
     return {
       grant_type: 'client_credentials',
-      client_id: config.credentials.clientId!,
-      client_secret: config.credentials.clientSecret!,
+      client_id: config.credentials.clientId as string,
+      client_secret: config.credentials.clientSecret as string,
       scope: 'indicators:read threats:feed'
     };
   }
@@ -120,7 +166,7 @@ export class CtiAdapter implements AbstractAdapter {
   }
 
   private getAuthHeaders(token: string): { Authorization: string; 'Content-Type': string } {
-    return { 
+    return {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     };
@@ -142,17 +188,18 @@ export class CtiAdapter implements AbstractAdapter {
   private startTokenRefresh(expiresIn: number): void {
     const refreshTime = (expiresIn * 1000) - 60000;
     clearTimeout(this.tokenRefreshTimer);
-    
+
     this.tokenRefreshTimer = setTimeout(async () => {
       try {
         await this.refreshToken();
       } catch (error) {
-        this.errorHandler.handleError({
+        const errorDetails: ErrorDetails = {
           error,
           service: this.SERVICE_TYPE,
           category: 'TOKEN_REFRESH',
           endpoint: this.connection?.baseUrl
-        });
+        };
+        this.errorHandler.handleError(errorDetails); // ✅ Accepts ErrorDetails
       }
     }, refreshTime);
   }
@@ -162,14 +209,27 @@ export class CtiAdapter implements AbstractAdapter {
       throw new Error('No refresh token available');
     }
 
-    const response = await this.http.post<AuthResponse>(
-      `${this.connection.baseUrl}/v3/auth/refresh`,
-      { refresh_token: this.connection.refreshToken },
-      { headers: this.getCTIHeaders(this.connection) }
-    ).pipe(
-      timeout(this.TIMEOUT),
-      retry(this.MAX_RETRIES)
-    ).toPromise();
+    const minConfig: ConnectionConfig = {
+      baseUrl: this.connection.baseUrl,
+      credentials: {
+        accountId: 'cti-refresh',
+        apiKey: 'dummy',
+        clientId: '',
+        clientSecret: ''
+      },
+      authType: 'apiKey'
+    };
+
+    const response = await lastValueFrom(
+      this.http.post<AuthResponse>(
+        `${this.connection.baseUrl}/v3/auth/refresh`,
+        { refresh_token: this.connection.refreshToken },
+        { headers: this.getCTIHeaders(minConfig) }
+      ).pipe(
+        timeout(this.TIMEOUT),
+        retry(this.MAX_RETRIES)
+      )
+    );
 
     this.connection.accessToken = response.access_token;
     this.connection.expiration = Date.now() + (response.expires_in * 1000);
@@ -177,6 +237,8 @@ export class CtiAdapter implements AbstractAdapter {
 
     this.securityAudit.log({
       eventType: `${this.SERVICE_TYPE}_TOKEN_REFRESHED`,
+      severity: 'LOW',
+      category: 'SYSTEM',
       context: { newExpiration: this.connection.expiration }
     });
   }

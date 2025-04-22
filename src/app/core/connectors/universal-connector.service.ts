@@ -1,19 +1,14 @@
-// src/app/core/connectors/universal-connector.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ConnectionConfig } from '../interfaces/connection-config.interface';
+import { ServiceType } from './universal-connector-types';
 
-// Add the missing ServiceType enum
-export enum ServiceType {
-  VI = 'vulnerability-intelligence',
-  CTI = 'cyber-threat-intelligence',
-  TI = 'threat-intelligence',
-  OSINT = 'open-source-intelligence'
-}
+export { ServiceType } from './universal-connector-types';
 
 @Injectable({ providedIn: 'root' })
+
 export class UniversalConnector {
   private sessionData: { isValid: boolean; roles: string[]; userId: string } | null = null;
   private activeConnections: Map<ServiceType, ConnectionConfig> = new Map();
@@ -101,6 +96,7 @@ export class UniversalConnector {
     });
     return connections;
   }
+  
   async validateCurrentSession(): Promise<boolean> {
     // Example logic — customize as needed
     const token = localStorage.getItem('authToken');

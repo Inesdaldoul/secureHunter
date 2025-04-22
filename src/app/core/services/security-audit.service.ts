@@ -7,7 +7,7 @@ import { CryptoService } from './crypto.service';
 import { DeviceService } from './device.service';
 import { environment } from '../../../environments/environment';
 import { UserRole } from './../models/user-role.model';
-// Updated AuditEvent interface
+
 export interface AuditEvent {
   eventType: string;
   severity: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -23,6 +23,7 @@ export class SecurityAuditService {
   private eventBuffer: AuditEvent[] = [];
   private readonly BUFFER_SIZE = 20;
   getCurrentUserRole: any;
+  logPerformanceEvent: any;
   
   constructor(
     private storage: LocalStorageService,
@@ -32,7 +33,12 @@ export class SecurityAuditService {
     private device: DeviceService
   ) {}
   
-  async log(event: Omit<AuditEvent, 'timestamp' | 'metadata'>): Promise<void> {
+  async log(event: Omit<AuditEvent, 'timestamp' | 'metadata'>, 
+    options?: { 
+      endpoint?: string; 
+      authType?: "apiKey" | "oauth" | "basic";
+    }): Promise<void> {
+    
     const completeEvent: AuditEvent = {
       ...event,
       timestamp: new Date(),
@@ -41,9 +47,11 @@ export class SecurityAuditService {
         deviceId: await this.device.getSecureDeviceId(),
         userAgent: navigator.userAgent,
         ipHash: this.crypto.hash(await this.network.getClientIp()),
-        environment: environment.production ? 'production' : 'development'
+        environment: environment.production ? 'production' : 'development',
+        ...(options && { options }) // Include options in metadata if provided
       }
     };
+    
     this.eventBuffer.push(completeEvent);
     if (this.eventBuffer.length >= this.BUFFER_SIZE) {
       await this.flushLogs();
@@ -58,7 +66,7 @@ export class SecurityAuditService {
     });
   }
   
-  // New method for logging security incidents (used in role.guard.ts)
+  // Method for logging security incidents (used in role.guard.ts)
   async logSecurityIncident(event: Omit<AuditEvent, 'timestamp' | 'metadata'>): Promise<void> {
     return this.log({
       ...event,
@@ -66,7 +74,6 @@ export class SecurityAuditService {
     });
   }
   
-  // Missing method from errors
   getCurrentThreatLevel(): number {
     // Implementation based on your security model
     const session = this.getSessionMetadata();
@@ -77,7 +84,6 @@ export class SecurityAuditService {
     return 2; // Default threat level
   }
   
-  // Missing method from errors
   evaluateAccessPolicy(criteria: any): boolean {
     // Implement your policy evaluation logic
     if (!criteria || !criteria.role) {
@@ -86,7 +92,7 @@ export class SecurityAuditService {
     
     // Example implementation - fixed string comparison
     const requiredRole: UserRole = criteria.role;
-    const currentUserRole: UserRole = this.auth.currentSessionId ? 'AUTHENTICATED' : 'GUEST'  ;
+    const currentUserRole: UserRole = this.auth.currentSessionId ? 'AUTHENTICATED' : 'GUEST';
     
     // Fix the string comparison issue
     if (requiredRole === 'AUTHENTICATED' && currentUserRole !== 'AUTHENTICATED') {
@@ -101,7 +107,6 @@ export class SecurityAuditService {
     return true;
   }
   
-  // Missing method from errors
   getSessionMetadata() {
     return {
       sessionId: this.auth.currentSessionId ?? 'anonymous',
@@ -110,7 +115,6 @@ export class SecurityAuditService {
       ipHash: localStorage.getItem('ip_hash') || ''
     };
   }
-  
   
   private async flushLogs(): Promise<void> {
     // Implement your log flushing logic here
@@ -130,5 +134,4 @@ export class SecurityAuditService {
       console.error('Failed to flush logs:', error);
     }
   }
-  
 }

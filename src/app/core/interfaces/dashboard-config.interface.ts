@@ -1,3 +1,5 @@
+import { WidgetConfig } from "./widget.interface";
+
 export enum LayoutType {
   RESPONSIVE_GRID = 'responsive-grid', // Grille adaptative
   CANVAS = 'canvas', // Layout libre type Whiteboard
